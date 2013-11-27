@@ -1,10 +1,14 @@
+"""
+Created Fall 2013
+
+@author: Michael Mordowanec (Mordeaux)
+"""
+
 # may want to distinguish between username and name on system
 #lock mode for particular batches, lets user see but not modify--not finished
 #make it possible for admin to impersonate users--not finished
-#json for each data set
-#make separate directories for user data and output--not finished
 
-from flask import Flask, render_template, request, send_file, redirect
+from flask import Flask, render_template, requeend_file, redirect
 from functions import *
 import sys, os, codecs, json, time, glob
 dirname = os.path.dirname(__file__)
@@ -12,10 +16,10 @@ filename = os.path.join(dirname, 'gfl_syntax/scripts')
 sys.path.insert(0, filename)
 import view
 
-OUTPUT = '_output.json'
-NEWSWIRE = True
-DIRECTORY ='app_data/'
-ANNOTATIONS_PER_BATCH = 10
+OUTPUT = '_output.json' # Will be appended to usernames to create the output file name
+NEWSWIRE = True # Toggles normalization task
+DIRECTORY ='app_data/' # The directory where the app will store it's data.
+ANNOTATIONS_PER_BATCH = 10 # Number of annotation units to be in each batch assigned to annotator
 OVERLAP = 4 #how many annotations per batch will be doubly annotated, must be even number.
 
 app = Flask(__name__)
@@ -26,6 +30,7 @@ def home():
 
 @app.route("/n")
 def newEntry():
+	""" This page allows the user to enter an arbitrary string to annotate. """
 	return render_template("annotate.html", c=('new', '0', 0), anno={'id':int(time.time()), 'sent':'', 'anno':'', 'last':True, 'number':0, 'userAdd':True, 'analyzed':[], 'accessed':[], 'submitted':[], 'pos':None}, newswire=False)
 
 @app.route("/annotate/<dataset>/<int:b>/<int:i>", methods=['POST', 'GET'])
@@ -143,3 +148,4 @@ if __name__ == "__main__":
     #app.run(debug=True) #in debug mode server reloads itself automatically on code changes. 
 						#Do not use on the actual server, hackers can exploit it somehow to run arbitrary code
     
+

@@ -1,1 +1,19 @@
 gfl_web
+=======
+
+Uses Python's Flask module to create a web-based interface for GFL-FUDGE annotation. 
+
+By Michael Mordowanec, Nathan Schneider
+
+Getting Started
+===============
+
+The code in this repository requires Python 2.7 and Flask 0.10.1. It also depends on the gfl_syntax project repository, which in turn uses parsimonious and graphviz to parse annotaions and create a .png representation.
+
+To get started, simply cd to the repository and run:
+> python FlaskGFL.py
+
+This will create a server on you local machine, which will allow you to annotate in your browser. Installing on an actual server requires some expertise.
+
+After running the utility, .preproc files can be added to the preproc directory in your app's data directory. .preproc is the format used by the gfl_syntax tools whose repository has scripts to help create it. Files added here will automatically be converted to JSON and appear as a list of batches on the admin screen.
+
