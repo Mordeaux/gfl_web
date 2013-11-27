@@ -1,0 +1,51 @@
+{% extends "template.html" %}
+{% block title %}Annotate{% endblock %}
+
+{% block body %}
+
+{% if c[0] == 'new' %}
+<h1>New</h1>
+{% elif c[0] == 'training' %}
+<h1>Training</h1>
+{% else %}
+<h1>Batch {{ c[1] }} of {{ c[0] }}</h1>
+{% endif %}
+<div id="interface">
+<form name="annotation" action="/{{ url_for('goTo', dataset=c[0], b=c[1], i=c[2]) }}" method="POST">
+	Sentence:<br>
+	<textarea id="sent" name="sent" rows="3" cols="70" accept-charset="UTF-8">{{ anno['sent'] }}</textarea><br>
+	Annotation:<br>
+	<textarea id="anno" name="anno" rows="8" cols="70" accept-charset="UTF-8">{{ anno['anno'] }}</textarea><br>
+	{% if newswire %}
+		Normalization:<br>
+		<textarea id="newswire" name="newswire" rows="2" cols="70" accept-charset="UTF-8">{{ anno['newswire'] }}</textarea><br>
+	{% endif %}
+	{% if c[0] != 'new' %}
+	Comments:<br>
+	<textarea id="comment" name="comment" rows="2" cols="70" accept-charset="UTF-8">{{ anno['comment'] }}</textarea><br>
+	{% endif %}
+
+	{% if c[2] != 0 and c[0] != 'new' %}
+		<a href="{{ url_for('goTo', dataset=c[0], b=c[1], i=c[2]-1) }}">&lt;</a>
+	{% elif c[0] == 'new' %}
+	
+	{% else %}
+		<a href="{{ url_for('goTo', dataset=c[0], b=c[1], i=c[2]) }}">&lt;</a>
+	{% endif %}
+	
+	
+	<input type="button" value="Analyze" onclick="loadImage();"/>
+	{% if c[0] != 'new' %}
+	<input id="save" type="submit" value="Submit" disabled/>
+	<a href="/n">New</a>
+	{% endif %}
+	{% if not anno['last'] %}
+		<a href="{{ url_for('goTo', dataset=c[0], b=c[1], i=c[2]+1) }}">&gt;</a>
+	{% endif %}
+	</form>
+	</div>
+<a href="{{ url_for('home') }}">Home</a>
+<div id="error"></div>
+<div id="image"></div>
+
+{% endblock %}

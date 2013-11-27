@@ -1,0 +1,23 @@
+﻿{% extends "template.html" %}
+{% block title %}Home{% endblock %}
+
+{% block body %}
+
+<h1><a href="{{ url_for('goTo', dataset='training', b='0', i='0') }}">Training Set</a></h1>
+
+<!-- eventually I'm going to want to sort these according to the order in which the dataset was assigned -->
+<table id="index">
+{% for dataset in userDict %}
+	{% if dataset != 'current' and dataset != 'training' and dataset != 'new' %}
+		<td><table>
+		<tr><td><h1>{{ dataset }}<h1></td></tr>
+		
+		{% for x in userDict[dataset] %}
+			<tr><td><a href="{{ url_for('goTo', dataset=dataset, b=x, i='0') }}">Number: {{ x }}</a></td></tr>
+		{% endfor %}
+		
+		</table></td>
+	{% endif %}
+{% endfor %}
+</table>
+{% endblock %}

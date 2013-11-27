@@ -1,0 +1,49 @@
+﻿{% extends "template.html" %}
+{% block title %}Admin Interface{% endblock %}
+
+{% block body %}
+
+<h1>Admin Interface</h1>
+<table><td>Username*: </td>
+<td><input type="text" id="username" name="username"></td>
+<td>Alias: </td>
+<td><input type="text" id="alias" name="alias"></td></table>
+
+
+<table id="adminTable">
+	{% for dataset in assignments %}
+	
+	
+	<td><table>
+	<tr class="datasetName"><td colspan="3">{{ dataset }}</td></tr>
+	
+		{% for x in assignments[dataset] %}
+			{% set i = '' ~ loop.index0 %}
+			<tr><td>{{ loop.index0 }}  assigned to: </td>
+			
+			
+			<td><select name="username" id="{{ dataset }}_{{ loop.index0 }}"><option></option>
+			{% for user in users %}
+				{% if assignments[dataset][i] == user %}
+					<option selected>{{ user }}</option>
+				{% else %}
+					<option>{{ user }}</option>
+				{% endif %}
+			{% endfor %}
+			</select></td>
+			
+			
+			
+			<td><input type="button" value="assign" onClick="assignBatch('{{ dataset }}', {{ loop.index0 }});"/></td></tr>
+		{% endfor %}
+		
+		
+		
+	</table></td>
+	
+	
+	{% endfor %}
+</table>
+
+
+{% endblock %}
