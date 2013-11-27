@@ -8,7 +8,7 @@ Created Fall 2013
 #lock mode for particular batches, lets user see but not modify--not finished
 #make it possible for admin to impersonate users--not finished
 
-from flask import Flask, render_template, requeend_file, redirect
+from flask import Flask, render_template, request, redirect
 from functions import *
 import sys, os, codecs, json, time, glob
 dirname = os.path.dirname(__file__)
