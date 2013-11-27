@@ -1,0 +1,3 @@
+[submodule "gfl_syntax"]
+	path = gfl_syntax
+	url = https://github.com/brendano/gfl_syntax.git
