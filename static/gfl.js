@@ -1,9 +1,9 @@
-﻿// use jquery
+// use jquery
 
 
 function loadImage() {
 	var sentenceStr = encodeURIComponent($("#sent").val());
-	var annotationStr = encodeURIComponent($("#anno").val());
+	var annotationStr = encodeURIComponent(editor.getValue());
 	var image = $("#image");
 	var error = $("#error");
 	

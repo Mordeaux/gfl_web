@@ -8,7 +8,7 @@ Created Fall 2013
 #lock mode for particular batches, lets user see but not modify--not finished
 #make it possible for admin to impersonate users--not finished
 
-from flask import Flask, render_template, request, redirect
+from flask import Flask, render_template, request, redirect, send_file
 from functions import *
 import sys, os, codecs, json, time, glob
 dirname = os.path.dirname(__file__)
@@ -132,6 +132,10 @@ def newUser(username=False):
 	with codecs.open(DIRECTORY+'users/'+username+'.json', 'w', 'utf-8') as f:
 		f.write(json.dumps(userDict))
 	return '', 200
+	
+@app.route('/s/s/ace')
+def ace():
+  return render_template('ace.html')
 
 
 if __name__ == "__main__":

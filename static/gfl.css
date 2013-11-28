@@ -1,23 +1,18 @@
-﻿/* use em for font sizes */
-* {
-	background-color:#eed;
-	
-}
 #image, #error{
 	display:none;
 	margin: auto;
 	border:.2em solid black;
 	border-radius:1em;
 	font-weight:bold;
-	margin:auto;
 }
 
 body { 
 	font-family: tahoma, sans-serif; 
 	text-align:center;
+	background-color:#eed;
 }
 
-a,input[type=submit], input[type=button] { 
+a, .buttonLike { 
 	font-weight: bold; 
 	display: inline-block; 
 	padding: 5px; 
@@ -84,10 +79,15 @@ font-size:1em;
 	font-weight:bold;
 }
 #interface textarea {
-	border-radius:1em;
 	background-color:#f5f5f5;
 	resize:none;
 }
+
+#interface textarea, #editor {
+  width:45%;
+	border-radius:1em;
+}
+
 #interface{
 	border:1em groove maroon;
 	border-radius:1.3em;

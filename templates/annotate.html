@@ -1,5 +1,20 @@
 {% extends "template.html" %}
 {% block title %}Annotate{% endblock %}
+{% block head %}
+<style type="text/css" media="screen">
+  #editor {
+    position:relative !important;
+    background-color:white;
+    color:black;
+    border:1px solid lightgray;
+    margin:auto;
+    height:10em;
+    text-align:left;
+    font-weight:normal;
+    }
+  
+</style>
+{% endblock %}
 
 {% block body %}
 
@@ -15,7 +30,9 @@
 	Sentence:<br>
 	<textarea id="sent" name="sent" rows="3" cols="70" accept-charset="UTF-8">{{ anno['sent'] }}</textarea><br>
 	Annotation:<br>
-	<textarea id="anno" name="anno" rows="8" cols="70" accept-charset="UTF-8">{{ anno['anno'] }}</textarea><br>
+	<pre id="editor">{{ anno['anno'] }}
+	  
+	</pre>
 	{% if newswire %}
 		Normalization:<br>
 		<textarea id="newswire" name="newswire" rows="2" cols="70" accept-charset="UTF-8">{{ anno['newswire'] }}</textarea><br>
@@ -34,9 +51,9 @@
 	{% endif %}
 	
 	
-	<input type="button" value="Analyze" onclick="loadImage();"/>
+	<input class="buttonLike" type="button" value="Analyze" onclick="loadImage();"/>
 	{% if c[0] != 'new' %}
-	<input id="save" type="submit" value="Submit" disabled/>
+	<input class="buttonLike" id="save" type="submit" value="Submit" disabled/>
 	<a href="/n">New</a>
 	{% endif %}
 	{% if not anno['last'] %}
@@ -47,5 +64,12 @@
 <a href="{{ url_for('home') }}">Home</a>
 <div id="error"></div>
 <div id="image"></div>
+
+<script src="{{ url_for('static', filename='src-min-noconflict/ace.js') }}" type="text/javascript" charset="utf-8"></script>
+<script>
+    var editor = ace.edit("editor");
+    editor.setTheme("ace/theme/dreamweaver");
+    editor.getSession().setMode("ace/mode/plain");
+</script>
 
 {% endblock %}
