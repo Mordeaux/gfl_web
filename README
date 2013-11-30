@@ -17,3 +17,4 @@ This will create a server on you local machine, which will allow you to annotate
 
 After running the utility, .preproc files can be added to the preproc directory in your app's data directory. .preproc is the format used by the gfl_syntax tools whose repository has scripts to help create it. Files added here will automatically be converted to JSON and appear as a list of batches on the admin screen.
 
+The annotation interface uses the Ace texteditor, so special thanks to them (http://ace.c9.io/). 

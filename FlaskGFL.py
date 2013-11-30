@@ -133,10 +133,6 @@ def newUser(username=False):
 		f.write(json.dumps(userDict))
 	return '', 200
 	
-@app.route('/s/s/ace')
-def ace():
-  return render_template('ace.html')
-
 
 if __name__ == "__main__":
 	directories = [DIRECTORY, DIRECTORY+'data/', DIRECTORY+'output/', DIRECTORY+'users/', DIRECTORY+'preproc/', DIRECTORY+'temp/']

@@ -38,3 +38,26 @@ function assignBatch(dataset, batch) {
 		console.log(data);
 	});
 };
+
+function postAnno(dataset, batch, index) {
+  var anno = editor.getValue();
+  var newswire = $("#newswire").val();
+  var comment = $("#comment").val();
+  var sent = $("#sent").val();
+  var form = {
+    "sent":sent,
+    "anno":anno,
+    "newswire":newswire,
+    "comment":comment
+  }
+  $.post("/annotate/"+dataset+"/"+batch+"/"+index, form)
+    .success(function(data){
+      window.alert("Success! "+data);
+      
+    })
+    .fail(function(data){
+      window.alert(data);
+    });
+  
+  
+};
