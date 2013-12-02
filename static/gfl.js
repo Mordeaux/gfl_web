@@ -1,31 +1,78 @@
 // use jquery
 
 
+function popForm(){
+  if(window.currentInd <= 0){window.currentInd = "0";}
+  if(window.currentInd >= window.lastInd){window.currentInd = window.lastInd.toString();}
+  var annoDic = window.batchDict[window.currentInd];
+  $("#sent").val(annoDic.sent);
+  editor.setValue(annoDic.anno);
+  $("#newswire").val(annoDic.newswire);
+  $("#comment").val(annoDic.comment);
+  $("#result").css("display", "none");
+  noSave();
+  window.batchDict[window.currentInd].accessed.push(Math.round(+new Date()/1000));
+  updateBatch();
+}
+function noSave(){
+	var container = $("#interface");
+  container.css("border", "1em groove maroon");
+  container.css("background-color", "#a66");
+  document.getElementById("save").disabled=true;
+}
+function yesSave(){
+	var container = $("#interface");
+	container.css("border", "1em groove green");
+	container.css("background-color", "#54ed4a");
+	document.getElementById("save").disabled=false;
+}
+function toConsole(){console.log(window.batchDict)}
+
+function nextAnno(){
+  window.currentInd = parseInt(window.currentInd) + 1;
+  window.currentInd = window.currentInd.toString();
+  popForm();
+}
+function prevAnno(){
+  window.currentInd = parseInt(window.currentInd) - 1;
+  window.currentInd = window.currentInd.toString();
+  popForm();
+}
+function updateBatch(){
+  $.post("/api/updateBatch", {'batch':JSON.stringify(window.batchDict)})
+    .success(function(data) {
+      //console.log(JSON.stringify(window.batchDict));
+    })
+    .fail(function(data){
+      window.alert("Connection interrupted?");
+    });
+}
 function loadImage() {
 	var sentenceStr = encodeURIComponent($("#sent").val());
 	var annotationStr = encodeURIComponent(editor.getValue());
-	var image = $("#image");
-	var error = $("#error");
-	
+	var result = $("#result");
+
+	window.batchDict[window.currentInd].analyzed.push(Math.round(+new Date()/1000));
+	window.batchDict[window.currentInd].anno = editor.getValue();
 	$.get("/api/analyzegfl.png?sentence=" + sentenceStr + "&anno="+ annotationStr)
 	.success(function(data){
-		image.html("<img src=\"/api/analyzegfl.png?sentence=" + sentenceStr + "&anno="+ annotationStr + "\"/>");
-		image.css('display', 'block');
-		error.css("display", "none");
-		document.getElementById("save").disabled=false;
+		result.html("<img style=\"border-radius:1em;border:2px solid black;\" src=\"/api/analyzegfl.png?sentence=" + sentenceStr + "&anno="+ annotationStr + "\"/>");
+		result.css('display', 'block');
+    yesSave();
 		})
 	.fail(function(data){
-		console.log(data)
-		error.html(data.responseText);
-		image.css("display", "none");
-		error.css("display", "block");
+		result.html(data.responseText);
+		result.css("display", "block");
+		result.css("border", "2px solid black");
+		noSave();
 		window.alert(data.responseText);
 		document.getElementById("save").disabled=true;
 		});
-};
+	updateBatch();
+}
 
 function assignBatch(dataset, batch) {
-	var user = $("#"+dataset+"_"+batch).val()
+	var user = $("#"+dataset+"_"+batch).val();
 	var uriuser = encodeURIComponent(user);
 	var uridataset = encodeURIComponent(dataset);
 	var uribatch = encodeURIComponent(batch);
@@ -37,27 +84,23 @@ function assignBatch(dataset, batch) {
 	.fail(function(data){
 		console.log(data);
 	});
-};
+}
 
-function postAnno(dataset, batch, index) {
-  var anno = editor.getValue();
-  var newswire = $("#newswire").val();
-  var comment = $("#comment").val();
-  var sent = $("#sent").val();
-  var form = {
-    "sent":sent,
-    "anno":anno,
-    "newswire":newswire,
-    "comment":comment
-  }
-  $.post("/annotate/"+dataset+"/"+batch+"/"+index, form)
+
+
+function postAnno() {
+  window.batchDict[window.currentInd].anno = editor.getValue();
+  window.batchDict[window.currentInd].newswire = $("#newswire").val();
+  window.batchDict[window.currentInd].comment = $("#comment").val();
+  window.batchDict[window.currentInd].submitted.push(Math.round(+new Date()/1000));
+  console.log(window.batchDict[window.currentInd]);
+  $.post("/api/submit", {"anno":JSON.stringify(window.batchDict[window.currentInd])})
     .success(function(data){
       window.alert("Success! "+data);
       
     })
     .fail(function(data){
-      window.alert(data);
+      console.log(data);
     });
-  
-  
-};
+  nextAnno();
+}

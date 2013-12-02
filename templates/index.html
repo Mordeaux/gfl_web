@@ -1,9 +1,10 @@
-﻿{% extends "template.html" %}
+{% extends "template.html" %}
 {% block title %}Home{% endblock %}
 
 {% block body %}
 
-<h1><a href="{{ url_for('goTo', dataset='training', b='0', i='0') }}">Training Set</a></h1>
+<input class="buttonLike" type="button" value="Training Set" onclick="$.get('{{  url_for('setCurrent', dataset='training', batch='0')  }}').success(function(data){window.location = '/annotate'});">
+<input class="buttonLike" type="button" value="Blank Form" onclick="$.get('{{  url_for('setCurrent', dataset='new', batch='0')  }}').success(function(data){window.location = '/annotate'});">
 
 <!-- eventually I'm going to want to sort these according to the order in which the dataset was assigned -->
 <table id="index">
@@ -13,7 +14,7 @@
 		<tr><td><h1>{{ dataset }}<h1></td></tr>
 		
 		{% for x in userDict[dataset] %}
-			<tr><td><a href="{{ url_for('goTo', dataset=dataset, b=x, i='0') }}">Number: {{ x }}</a></td></tr>
+			<tr><td><input class="buttonLike" type="button" value="Number: {{ x }}" onclick="$.get('{{  url_for('setCurrent', dataset=dataset, batch=x)  }}').success(function(data){window.location = '/annotate';});"/></td></tr>
 		{% endfor %}
 		
 		</table></td>

@@ -18,58 +18,50 @@
 
 {% block body %}
 
-{% if c[0] == 'new' %}
-<h1>New</h1>
-{% elif c[0] == 'training' %}
-<h1>Training</h1>
-{% else %}
-<h1>Batch {{ c[1] }} of {{ c[0] }}</h1>
-{% endif %}
+<div id="headline"></div>
 <div id="interface">
-<form name="annotation" action="/{{ url_for('goTo', dataset=c[0], b=c[1], i=c[2]) }}" method="POST">
 	Sentence:<br>
-	<textarea id="sent" name="sent" rows="3" cols="70" accept-charset="UTF-8">{{ anno['sent'] }}</textarea><br>
+	<textarea id="sent" name="sent" rows="3" cols="70" accept-charset="UTF-8"></textarea><br>
 	Annotation:<br>
-	<pre id="editor">{{ anno['anno'] }}
-	  
-	</pre>
+	<pre id="editor"></pre>
 	{% if newswire %}
 		Normalization:<br>
-		<textarea id="newswire" name="newswire" rows="2" cols="70" accept-charset="UTF-8">{{ anno['newswire'] }}</textarea><br>
+		<textarea id="newswire" name="newswire" rows="2" cols="70" accept-charset="UTF-8"></textarea><br>
 	{% endif %}
-	{% if c[0] != 'new' %}
 	Comments:<br>
-	<textarea id="comment" name="comment" rows="2" cols="70" accept-charset="UTF-8">{{ anno['comment'] }}</textarea><br>
-	{% endif %}
-
-	{% if c[2] != 0 and c[0] != 'new' %}
-		<a href="{{ url_for('goTo', dataset=c[0], b=c[1], i=c[2]-1) }}">&lt;</a>
-	{% elif c[0] == 'new' %}
+	<textarea id="comment" name="comment" rows="2" cols="70" accept-charset="UTF-8"></textarea><br>
 	
-	{% else %}
-		<a href="{{ url_for('goTo', dataset=c[0], b=c[1], i=c[2]) }}">&lt;</a>
-	{% endif %}
-	
-	
+	<input class="buttonLike" type="button" id="last" value="&lt;" onclick="prevAnno();"/>
 	<input class="buttonLike" type="button" value="Analyze" onclick="loadImage();"/>
-	{% if c[0] != 'new' %}
-	<input class="buttonLike" id="save" type="button" onclick="postAnno('{{ c[0] }}', '{{ c[1] }}', '{{ c[2] }}');" value="Submit" disabled/>
-	<a href="/n">New</a>
-	{% endif %}
-	{% if not anno['last'] %}
-		<a href="{{ url_for('goTo', dataset=c[0], b=c[1], i=c[2]+1) }}">&gt;</a>
-	{% endif %}
-	</form>
+	<input class="buttonLike" type="button" id="save" value="Submit" onclick = "postAnno();" disabled/>
+	<input class="buttonLike" type="button" id="next" value="&gt;" onclick="nextAnno();"/>
 	</div>
-<a href="{{ url_for('home') }}">Home</a>
-<div id="error"></div>
-<div id="image"></div>
+<a class="buttonLike" href="{{ url_for('home') }}">Home</a>
+<div id="result"></div>
 
 <script src="{{ url_for('static', filename='src-min-noconflict/ace.js') }}" type="text/javascript" charset="utf-8"></script>
 <script>
     var editor = ace.edit("editor");
     editor.setTheme("ace/theme/dreamweaver");
     editor.getSession().setMode("{{ url_for('static', filename="ace/mode/plain_text") }}");
+    
+    var dataset = "{{ c[0] }}";
+    var batch = "{{ c[1] }}";
+    
+  $(document).ready(function(){
+    $.get("/api/getBatch?dataset="+encodeURIComponent(dataset)+"&batch="+encodeURIComponent(batch))
+    .success(function(data){
+      //console.log(data);
+      window.batchDict = JSON.parse(data);
+      window.lastInd = Object.keys(window.batchDict).length - 3;
+      window.currentInd = "0";
+      popForm();
+    })
+    .fail(function(data){
+      console.log(data);
+    });
+});
+
 </script>
 
 {% endblock %}

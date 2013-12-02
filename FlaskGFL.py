@@ -8,13 +8,14 @@ Created Fall 2013
 #lock mode for particular batches, lets user see but not modify--not finished
 #make it possible for admin to impersonate users--not finished
 
-from flask import Flask, render_template, request, redirect, send_file
+from flask import Flask, render_template, request, redirect, send_file, session
 from functions import *
 import sys, os, codecs, json, time, glob
 dirname = os.path.dirname(__file__)
 filename = os.path.join(dirname, 'gfl_syntax/scripts')
 sys.path.insert(0, filename)
 import view
+
 
 OUTPUT = '_output.json' # Will be appended to usernames to create the output file name
 NEWSWIRE = True # Toggles normalization task
@@ -26,43 +27,30 @@ app = Flask(__name__)
 
 @app.route("/")
 def home():
-	return render_template("index.html", userDict=getUserDict(str(request.environ.get('REMOTE_USER'))))
+  
+  session['username'] = 'default' # delete this line when actually deploying to server
+  
+  if request.environ.get('REMOTE_USER') or request.args.get('REMOTE_USER'):
+	  session['username'] = alias(request.environ.get('REMOTE_USER') or request.args.get('REMOTE_USER'))
+  username = session.get('username')
+  if not username:
+    return 'Permission denied', 403
+  return render_template('index.html', userDict=getUserDict(username))
+	
 
 @app.route("/n")
 def newEntry():
 	""" This page allows the user to enter an arbitrary string to annotate. """
 	return render_template("annotate.html", c=('new', '0', 0), anno={'id':int(time.time()), 'sent':'', 'anno':'', 'last':True, 'number':0, 'userAdd':True, 'analyzed':[], 'accessed':[], 'submitted':[], 'pos':None}, newswire=False)
 
-@app.route("/annotate/<dataset>/<int:b>/<int:i>", methods=['POST', 'GET'])
-def goTo(dataset, b, i):
-	if int(i)<0:
-		i = 0
-	username = alias(str(request.environ.get('REMOTE_USER')))
-	annoDic = getUserDict(username)
-	c = (dataset, str(b), str(i))
-	annoDic['current'] = c
-	anno = annoDic[dataset][str(b)][str(i)]
-	
-	if request.method == 'GET':
-		anno['accessed'].append(int(time.time()))
 
-	elif request.method == 'POST':
-		anno['anno'] = request.form['anno'].strip()
-		if NEWSWIRE:
-			anno['newswire'] = request.form['newswire']
-		anno['comment'] = request.form['comment']
-		anno['submitted'].append(int(time.time()))
-		anno['user'] = username
-		if anno['userAdd']:
-			anno['sent'] = request.form['sent'].strip()
-		else:
-			with codecs.open(DIRECTORY+'output/'+c[0]+'_'+username+OUTPUT, 'a', 'utf-8') as f:
-				f.write(json.dumps(anno))
-				f.write('\n')
-		annoDic['current'] = (dataset, str(b), str(int(i)+1))
-	saveUserDict(username, annoDic)
-	c = (dataset, str(b), int(i))
-	return render_template("annotate.html", c=c, anno=anno, t=int(time.time()), newswire=NEWSWIRE)
+@app.route('/annotate')
+def annotate():
+  username = session.get('username')
+  if not username: return home()
+  if not session.get('current'): return home()
+  return render_template('annotate.html', newswire=NEWSWIRE, c=session.get('current'))
+
 
 @app.route('/admin')
 def admin():
@@ -74,24 +62,62 @@ def admin():
 		assignments = json.loads(f.read())['assignments']
 	return render_template('admin.html', users=userlist, assignments=assignments)
 
+@app.route('/api/setCurrent')
+def setCurrent():
+  username = session.get('username')
+  if not username: return home()
+  dataset = request.args.get('dataset')
+  batch = request.args.get('batch')
+  session['current'] = (dataset, str(batch))
+  print session.get('current')
+  return 'OK',200
+
+@app.route('/api/getBatch')
+def getBatch():
+  username = session.get('username')
+  if not username: return home()
+  annoDic = getUserDict(username)
+  if request.args.get('dataset') == 'new':
+    return json.dumps({'0':{'id':int(time.time()), 'sent':'', 'anno':'', 'last':True, 'number':0, 'userAdd':True, 'analyzed':[], 'accessed':[], 'submitted':[], 'pos':None}, '1':'', '2':'', '3':''})
+  return json.dumps(annoDic[request.args.get('dataset')][request.args.get('batch')])
+
+@app.route('/api/updateBatch', methods=['POST'])
+def updateBatch():
+  username = session.get('username')
+  if not username: return home()
+  if session.get('current')[0] == 'new':
+    return 'OK',200
+  annoDic = getUserDict(username)
+  newBatch = json.loads(request.form.get('batch'))
+  annoDic[session.get('current')[0]][session.get('current')[1]] = newBatch
+  saveUserDict(username, annoDic)
+  return 'OK',200
+
+@app.route('/api/submit', methods=['POST'])
+def submit():
+  username = session.get('username')
+  if not username: return home()
+  if session.get('current')[0] in ['training', 'new']:
+      return 'OK',200
+  with codecs.open(DIRECTORY+'output/'+session.get('current')[0]+'_'+username+OUTPUT, 'a', 'utf-8') as f:
+    f.write(request.form.get('anno'))
+    f.write('\n')
+  return 'OK',200
+
+
+
 @app.route('/api/analyzegfl.png', methods=['GET'])
-def analyze(): 
-	username = alias(str(request.environ.get('REMOTE_USER')))
-	annoDic = getUserDict(username)
-	c = annoDic['current']
-	anno = annoDic[c[0]][c[1]][c[2]]
+def newAnalyze(): 
+	username = session.get('username')
 	sent = request.args.get('sentence')
 	annotation = request.args.get('anno')
 	preproc = u'% TEXT\n{0}\n% ANNO\n{1}'.format(sent, annotation)
 	with codecs.open(DIRECTORY+'temp/'+username+'.txt', 'w', 'utf-8') as f:
 		f.write(preproc)
-	anno['analyzed'].append(int(time.time()))
 	try: 
 		view.main([DIRECTORY+'temp/'+username+'.txt'])
-		saveUserDict(username, annoDic)
 		return send_file(DIRECTORY+'temp/'+username+'.0.png', mimetype='image/png')
 	except Exception as ex:
-		saveUserDict(username, annoDic)
 		return str(ex), 500 
 
 
@@ -120,7 +146,7 @@ def assign():
 	meta['assignments'][dataset][str(batch)] = username
 	with codecs.open(DIRECTORY+'metaData.json', 'w', 'utf-8') as f:
 		f.write(json.dumps(meta))
-	return '',200
+	return 'OK',200
 		
 @app.route('/api/newuser')
 def newUser(username=False):
@@ -133,6 +159,10 @@ def newUser(username=False):
 		f.write(json.dumps(userDict))
 	return '', 200
 	
+	
+
+
+app.secret_key = "$e\x1c~:\xa0\xf7\xcfK\xc6\xe3Nr\xae\x84\n'\x9a\x9f\x1f\xfaJ\xc7\x97"
 
 if __name__ == "__main__":
 	directories = [DIRECTORY, DIRECTORY+'data/', DIRECTORY+'output/', DIRECTORY+'users/', DIRECTORY+'preproc/', DIRECTORY+'temp/']
@@ -142,7 +172,8 @@ if __name__ == "__main__":
 	if not os.path.isfile(DIRECTORY+'training.json'):
 		training()
 	if glob.glob(DIRECTORY+'users/*.json') == []:
-		newUser(username='None')
+		newUser(username='default')
+
 
 	app.run(debug=True)
     #app.run(debug=True) #in debug mode server reloads itself automatically on code changes. 

@@ -1,4 +1,4 @@
-﻿import re, codecs, json, time, os, sys, glob
+import re, codecs, json, time, os, sys, glob
 from FlaskGFL import DIRECTORY, ANNOTATIONS_PER_BATCH, OVERLAP
 
 def training():
@@ -131,7 +131,8 @@ def saveUserDict(username, annoDic):
 	with codecs.open(DIRECTORY+'users/'+alias(username)+'.json', 'w', 'utf-8') as f:
 		f.write(json.dumps(annoDic))
 		
-		
+
+
 def alias(username):
 	return username
 		
