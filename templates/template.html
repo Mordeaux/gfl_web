@@ -4,12 +4,12 @@
 <head>
 	<script type="text/javascript" src="{{ url_for('static', filename='jquery-2.0.0.min.js') }}"></script>
 	<script type="text/javascript" src="{{ url_for('static', filename='gfl.js') }}"></script>
-	<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='gfl.css') }}"/>
+	<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='gfl.css') }}" />
 	{% block head %}{% endblock %}
 	<title>{% block title %}{% endblock %} - GFL Annotation Tool</title>
 </head>
 <body>
 {% block body %}{% endblock %}
-</body>
 <div id="footer">GFL-FUDG Annotation Tool</div>
+</body>
 </html> 

@@ -96,3 +96,12 @@ font-size:1em;
 #username, #alias {
 	background-color:#fafafa;
 }
+
+#head1 {
+  font-size:3em;
+  
+}
+#head2, #head2 div{
+  display:inline;
+  font-size:1.5em;
+}

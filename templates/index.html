@@ -1,24 +1,39 @@
 {% extends "template.html" %}
 {% block title %}Home{% endblock %}
-
+{% block head %}
+<script type="text/javascript" src="{{ url_for('static', filename='progressButton.js') }}"></script>
+<link rel="stylesheet" href="{{ url_for('static', filename='progressButton.css') }}" />
+{% endblock %}
 {% block body %}
-
-<input class="buttonLike" type="button" value="Training Set" onclick="$.get('{{  url_for('setCurrent', dataset='training', batch='0')  }}').success(function(data){window.location = '/annotate'});">
+<script type="text/javascript">
+  progressDict = {};
+</script>
+<input class="buttonLike progress" id="training" type="button" value="Training Set" onclick="$.get('{{  url_for('setCurrent', dataset='training', batch='0')  }}').success(function(data){window.location = '/annotate'});">
 <input class="buttonLike" type="button" value="Blank Form" onclick="$.get('{{  url_for('setCurrent', dataset='new', batch='0')  }}').success(function(data){window.location = '/annotate'});">
-
 <!-- eventually I'm going to want to sort these according to the order in which the dataset was assigned -->
 <table id="index">
 {% for dataset in userDict %}
 	{% if dataset != 'current' and dataset != 'training' and dataset != 'new' %}
 		<td><table>
 		<tr><td><h1>{{ dataset }}<h1></td></tr>
-		
 		{% for x in userDict[dataset] %}
-			<tr><td><input class="buttonLike" type="button" value="Number: {{ x }}" onclick="$.get('{{  url_for('setCurrent', dataset=dataset, batch=x)  }}').success(function(data){window.location = '/annotate';});"/></td></tr>
+			<tr><td><a class="progress-button" data-loading="Number: {{ x }}" data-finished="Number: {{ x }} (complete)" id="{{ dataset }}{{ x }}" onclick="$.get('{{  url_for('setCurrent', dataset=dataset, batch=x)  }}').success(function(data){window.location = '/annotate';});"/>Number:{{ x }}</a></td></tr>
+		<script type="text/javascript">
+	      var complete = [{% for y in userDict[dataset][x] %}{% if userDict[dataset][x][y]['submitted'] %}1,{% endif %}{% endfor %}];
+	      var total = {{ userDict[dataset][x]|count }} - 2; 
+	      progressDict.{{ dataset }}{{ x }} = complete.length/total*100;
+	    </script>
 		{% endfor %}
-		
 		</table></td>
 	{% endif %}
 {% endfor %}
 </table>
+<script type="text/javascript">
+$(document).ready(function(){
+  $(".progress-button").progressInitialize();
+  $(".progress-button").each(function(){
+    $(this).progressSet(progressDict[$(this).attr("id")]);
+  });
+});
+</script>
 {% endblock %}

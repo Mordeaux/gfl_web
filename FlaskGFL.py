@@ -19,7 +19,7 @@ import view
 
 OUTPUT = '_output.json' # Will be appended to usernames to create the output file name
 NEWSWIRE = True # Toggles normalization task
-DIRECTORY ='app_data/' # The directory where the app will store it's data.
+DIRECTORY =os.path.join(dirname, 'app_data/') # The directory where the app will store it's data.
 ANNOTATIONS_PER_BATCH = 10 # Number of annotation units to be in each batch assigned to annotator
 OVERLAP = 4 #how many annotations per batch will be doubly annotated, must be even number.
 
@@ -37,20 +37,12 @@ def home():
     return 'Permission denied', 403
   return render_template('index.html', userDict=getUserDict(username))
 	
-
-@app.route("/n")
-def newEntry():
-	""" This page allows the user to enter an arbitrary string to annotate. """
-	return render_template("annotate.html", c=('new', '0', 0), anno={'id':int(time.time()), 'sent':'', 'anno':'', 'last':True, 'number':0, 'userAdd':True, 'analyzed':[], 'accessed':[], 'submitted':[], 'pos':None}, newswire=False)
-
-
 @app.route('/annotate')
 def annotate():
   username = session.get('username')
   if not username: return home()
   if not session.get('current'): return home()
   return render_template('annotate.html', newswire=NEWSWIRE, c=session.get('current'))
-
 
 @app.route('/admin')
 def admin():
@@ -104,8 +96,6 @@ def submit():
     f.write('\n')
   return 'OK',200
 
-
-
 @app.route('/api/analyzegfl.png', methods=['GET'])
 def newAnalyze(): 
 	username = session.get('username')
@@ -119,36 +109,35 @@ def newAnalyze():
 		return send_file(DIRECTORY+'temp/'+username+'.0.png', mimetype='image/png')
 	except Exception as ex:
 		return str(ex), 500 
-
-
 		
 @app.route('/api/assign')
 def assign():
-	dataset = request.args.get('dataset')
-	batch = int(request.args.get('batch'))
-	username = alias(request.args.get('user'))
-	with codecs.open(DIRECTORY+'data/'+dataset+'.json', 'r', 'utf-8') as f:
-		lines = f.readlines()
-	dic = json.loads(lines[batch])
-	dic['assignedTo'].append(username)
-	userDict = getUserDict(username)
-	if dataset not in userDict:
-		userDict[dataset] = {}
-	assert str(batch-1) not in userDict[dataset] and str(batch+1) not in userDict[dataset]		
-	userDict[dataset][str(batch)] = dic
-	saveUserDict(username, userDict)
-	lines[batch] = json.dumps(dic) + '\n'
-	with codecs.open(DIRECTORY+'data/'+dataset+'.json', 'w', 'utf-8') as f:
-		for line in lines:
-			f.write(line)
-	with codecs.open(DIRECTORY+'metaData.json', 'r', 'utf-8') as f:
-		meta = json.loads(f.read())
-	meta['assignments'][dataset][str(batch)] = username
-	with codecs.open(DIRECTORY+'metaData.json', 'w', 'utf-8') as f:
-		f.write(json.dumps(meta))
-	return 'OK',200
+  if not session.get('username'): return home()
+  dataset = request.args.get('dataset')
+  batch = int(request.args.get('batch'))
+  username = alias(request.args.get('user'))
+  with codecs.open(DIRECTORY+'data/'+dataset+'.json', 'r', 'utf-8') as f:
+    lines = f.readlines()
+  dic = json.loads(lines[batch])
+  dic['assignedTo'].append(username)
+  userDict = getUserDict(username)
+  if dataset not in userDict:
+    userDict[dataset] = {}
+  assert str(batch-1) not in userDict[dataset] and str(batch+1) not in userDict[dataset]		
+  userDict[dataset][str(batch)] = dic
+  saveUserDict(username, userDict)
+  lines[batch] = json.dumps(dic) + '\n'
+  with codecs.open(DIRECTORY+'data/'+dataset+'.json', 'w', 'utf-8') as f:
+    for line in lines:
+      f.write(line)
+  with codecs.open(DIRECTORY+'metaData.json', 'r', 'utf-8') as f:
+    meta = json.loads(f.read())
+  meta['assignments'][dataset][str(batch)] = username
+  with codecs.open(DIRECTORY+'metaData.json', 'w', 'utf-8') as f:
+    f.write(json.dumps(meta))
+  return 'OK',200
 		
-@app.route('/api/newuser')
+@app.route('/api/newUser')
 def newUser(username=False):
 	if not username:
 		username = request.args.get('newUser')
@@ -157,8 +146,35 @@ def newUser(username=False):
 		userDict['training'] = json.loads(f.read())
 	with codecs.open(DIRECTORY+'users/'+username+'.json', 'w', 'utf-8') as f:
 		f.write(json.dumps(userDict))
-	return '', 200
-	
+	return 'OK', 200
+
+@app.route('/api/admin')
+def apiAdmin():
+  if request.args.get('req') == 'submissions':
+    dic = {}
+    displayDic = {}
+    regex = r'(?:.*?/)+(.*?)_(.*?)'+OUTPUT
+    for filename in glob.glob(DIRECTORY+'output/*'):
+      print filename
+      print regex
+      username = re.search(regex, filename).group(2)
+      dataset = re.search(regex, filename).group(1)
+      print username
+      print dataset
+      print filename
+      if username not in dic:
+        dic[username] = {}
+        displayDic[username] = {}
+      if dataset not in dic[username]:
+        dic[username][dataset] = {}
+      with codecs.open(filename, 'r', 'utf-8') as f:
+        dic[username][dataset] = [json.loads(line) for line in f.readlines()]
+    return json.dumps(dic)
+    
+  elif request.args.get('req') == 'assignments':
+    return 'Assignments'
+  
+
 	
 
 

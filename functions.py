@@ -122,6 +122,7 @@ def updateDatasets():
 			addDataSet(file, sizeOfBatch=ANNOTATIONS_PER_BATCH, overlap=OVERLAP)
 	updateMetaData()
 
+
 def getUserDict(username):
 	with codecs.open(DIRECTORY+'users/'+alias(username)+'.json', 'r', 'utf-8') as f:
 		annoDic = json.loads(f.read())

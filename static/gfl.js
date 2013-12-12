@@ -5,6 +5,8 @@ function popForm(){
   if(window.currentInd <= 0){window.currentInd = "0";}
   if(window.currentInd >= window.lastInd){window.currentInd = window.lastInd.toString();}
   var annoDic = window.batchDict[window.currentInd];
+  $("#index").html(parseInt(window.currentInd)+1);
+  $("#lastInd").html(window.lastInd+1);
   $("#sent").val(annoDic.sent);
   editor.setValue(annoDic.anno);
   $("#newswire").val(annoDic.newswire);
@@ -103,4 +105,20 @@ function postAnno() {
       console.log(data);
     });
   nextAnno();
+}
+
+function addUser() {
+  var username = $("#username");
+  var alias = $("#alias");
+  var newUser = username.val();
+  var newAlias = alias.val();
+  username.val("");
+  alias.val("");
+  $.get("api/newUser?newUser="+encodeURIComponent(newUser)+"&alias="+encodeURIComponent(newAlias))
+  .success(function(data){
+    window.alert("User added: "+newUser+"!");
+  })
+  .fail(function(data){
+    console.log(data);
+  });
 }

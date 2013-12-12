@@ -18,7 +18,10 @@
 
 {% block body %}
 
-<div id="headline"></div>
+<div id="head1">
+  Dataset: {{ c[0] }} Batch: {{ c[1] }} <br></div>
+  <div id="head2">Number <div id="index"></div> of <div id="lastInd"></div></div>
+
 <div id="interface">
 	Sentence:<br>
 	<textarea id="sent" name="sent" rows="3" cols="70" accept-charset="UTF-8"></textarea><br>
@@ -51,17 +54,24 @@
   $(document).ready(function(){
     $.get("/api/getBatch?dataset="+encodeURIComponent(dataset)+"&batch="+encodeURIComponent(batch))
     .success(function(data){
-      //console.log(data);
       window.batchDict = JSON.parse(data);
       window.lastInd = Object.keys(window.batchDict).length - 3;
+      var x = false;
       window.currentInd = "0";
+      while (!(x) && (parseInt(window.currentInd) < window.lastInd)){
+        if (window.batchDict[window.currentInd].submitted == false){
+          var x = true;
+        }
+        else{
+          console.log(window.batchDict[window.currentInd].submitted == false);
+          window.currentInd = parseInt(window.currentInd) + 1 + '';
+        }
+      }
       popForm();
     })
     .fail(function(data){
       console.log(data);
     });
 });
-
 </script>
-
 {% endblock %}

@@ -1,15 +1,21 @@
-﻿{% extends "template.html" %}
+{% extends "template.html" %}
 {% block title %}Admin Interface{% endblock %}
 
 {% block body %}
 
 <h1>Admin Interface</h1>
-<table><td>Username*: </td>
+<table><tr><td>Username*: </td>
 <td><input type="text" id="username" name="username"></td>
 <td>Alias: </td>
-<td><input type="text" id="alias" name="alias"></td></table>
+<td><input type="text" id="alias" name="alias"></td>
+<td><input type="button" value="Add User" class="buttonLike" onclick="addUser();"></td></tr>
+<tr><td><input type="button" value="See submissions" class="buttonLike" onclick="seeSubmissions();"></td>
+<td><input type="button" class="buttonLike" value="See assignments" onclick="seeAssignments();"></td>
+<td><input type="button" class="buttonLike" value="Assign" onclick="assignInterface();"></td>
+</tr>
+</table>
 
-
+<div id="adminDisplay">
 <table id="adminTable">
 	{% for dataset in assignments %}
 	
@@ -44,6 +50,30 @@
 	
 	{% endfor %}
 </table>
-
+</div>
+<div id="submissions">
+  
+</div>
+<script type="text/javascript">
+$(document).ready(function(){
+window.aTable = $("#adminDisplay").html();
+$.get("/api/admin?req=submissions")
+  .success(function(data){window.submissions = (JSON.parse(data));})
+  .fail(function(data){console.log(data);});
+)};
+function seeSubmissions(){
+  $("#adminDisplay").html(window.submissions);
+  }
+function assignInterface(){
+  $("#adminDisplay").html(window.aTable);
+}
+function seeAssignments(){
+  $.get("/api/admin?req=assignments")
+  .success(function(data){
+    $("#adminDisplay").html(data);
+  })
+  .fail(function(data){console.log(data);});
+}
+</script>
 
 {% endblock %}
