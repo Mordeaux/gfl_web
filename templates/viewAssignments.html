@@ -1,0 +1,10 @@
+
+<table class="adminTable">
+{% for dataset in dic %}
+	<td><table><tr><td style="width:250px;"><h1>{{ dataset }}</h1></td></tr>
+	{% for batch in dic[dataset] %}
+    <tr><td><h2>{{ loop.index0 }}:</h2>{% for user in batch['assignedTo'] %}{{ user }} {% endfor %}</td></tr>
+	{% endfor %}
+	</table></td>
+{% endfor %}
+</table>

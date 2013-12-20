@@ -19,7 +19,7 @@ import view
 
 OUTPUT = '_output.json' # Will be appended to usernames to create the output file name
 NEWSWIRE = True # Toggles normalization task
-DIRECTORY =os.path.join(dirname, 'app_data/') # The directory where the app will store it's data.
+DIRECTORY =os.path.join(dirname, 'app_data/') # The directory where the app will store its data.
 ANNOTATIONS_PER_BATCH = 10 # Number of annotation units to be in each batch assigned to annotator
 OVERLAP = 4 #how many annotations per batch will be doubly annotated, must be even number.
 
@@ -94,10 +94,31 @@ def submit():
   with codecs.open(DIRECTORY+'output/'+session.get('current')[0]+'_'+username+OUTPUT, 'a', 'utf-8') as f:
     f.write(request.form.get('anno'))
     f.write('\n')
+  x = True
+  batch = getUserDict(username)[session.get('current')[0]][session.get('current')[1]]
+  for anno in batch:
+    if anno not in ['assignedTo', 'locked']:
+      if not batch[anno]['submitted']:
+        x = False
+  if x:
+    print 'working'
+    with codecs.open(DIRECTORY+'/data/'+session.get('current')[0]+'.json', 'r', 'utf-8') as f:
+      dataset = f.readlines()
+      batch = json.loads(dataset[int(session.get('current')[1])])
+    for name in batch['assignedTo']:
+      if name == username:
+        print name
+        print batch['assignedTo']
+        print batch['assignedTo'].index(name)
+        batch['assignedTo'][batch['assignedTo'].index(name)] = name + ' (completed)'
+    dataset[int(session.get('current')[1])] = json.dumps(batch) + '\n'
+    with codecs.open(DIRECTORY+'/data/'+session.get('current')[0]+'.json', 'w', 'utf-8') as f:
+      for line in dataset:
+        f.write(line)
   return 'OK',200
 
 @app.route('/api/analyzegfl.png', methods=['GET'])
-def newAnalyze(): 
+def analyze(): 
 	username = session.get('username')
 	sent = request.args.get('sentence')
 	annotation = request.args.get('anno')
@@ -152,27 +173,25 @@ def newUser(username=False):
 def apiAdmin():
   if request.args.get('req') == 'submissions':
     dic = {}
-    displayDic = {}
     regex = r'(?:.*?/)+(.*?)_(.*?)'+OUTPUT
     for filename in glob.glob(DIRECTORY+'output/*'):
-      print filename
-      print regex
       username = re.search(regex, filename).group(2)
       dataset = re.search(regex, filename).group(1)
-      print username
-      print dataset
-      print filename
       if username not in dic:
         dic[username] = {}
-        displayDic[username] = {}
       if dataset not in dic[username]:
         dic[username][dataset] = {}
       with codecs.open(filename, 'r', 'utf-8') as f:
         dic[username][dataset] = [json.loads(line) for line in f.readlines()]
-    return json.dumps(dic)
-    
+    return render_template('viewSubmissions.html', displayDict=dic)
   elif request.args.get('req') == 'assignments':
-    return 'Assignments'
+    dic = {}
+    regex = r'(?:.*?/)+data/(.*?)\.json'
+    for filename in glob.glob(DIRECTORY+'data/*.json'):
+      dataset = re.search(regex, filename).group(1)
+      with codecs.open(filename, 'r', 'utf-8') as f:
+        dic[dataset] = [json.loads(line) for line in f.readlines()]
+    return render_template('viewAssignments.html', dic=dic)
   
 
 	

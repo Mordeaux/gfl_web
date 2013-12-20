@@ -57,16 +57,16 @@ font-size:1em;
 	font-size:2em;
 	border:.1em solid maroon;
 }
-#adminTable {
+.adminTable {
 	display:table-cell;
 	text-align:center;
 	background-color:maroon;
 }
-#adminTable table, #index table {
+.adminTable table, #index table {
 	border:.2em inset red;
 	background-color:maroon;
 }
-#adminTable td td, #index td td{
+.adminTable td td, #index td td{
 	font-size:.8em;
 	vertical-align:middle;
 	background-color:#abe;

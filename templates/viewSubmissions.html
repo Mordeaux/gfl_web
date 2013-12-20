@@ -1,0 +1,16 @@
+
+<table class="adminTable">
+{% for user in displayDict %}
+	<td><table><tr><td style="width:250px;"><h1>{{ user }}</h1></td></tr>
+	{% for dataset in displayDict[user] %}
+    <tr><td onclick="$('#{{ user }}{{ dataset }}').toggle();"><h2>{{ dataset }}</h2></td></tr>
+		  <tr id="{{ user }}{{ dataset }}" style="display:none;"><td>
+		  {% for anno in displayDict[user][dataset] %}
+		    <ul onclick="$('#{{ user }}{{ anno['submitted'][-1] }}').toggle()">{{ anno['id'] }}</ul>
+		    <div id="{{ user }}{{ anno['submitted'][-1] }}" style="display:none;border:2px black solid;border-radius:20px;width:250px;">{% for key in anno %}{{ key }}: {{ anno[key] }}</br>{% endfor %}</div>
+		  {% endfor %}
+	  </td></tr>
+	{% endfor %}
+	</table></td>
+{% endfor %}
+</table>

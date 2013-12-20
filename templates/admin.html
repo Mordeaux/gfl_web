@@ -14,66 +14,43 @@
 <td><input type="button" class="buttonLike" value="Assign" onclick="assignInterface();"></td>
 </tr>
 </table>
-
 <div id="adminDisplay">
-<table id="adminTable">
+<table class="adminTable">
 	{% for dataset in assignments %}
-	
-	
 	<td><table>
 	<tr class="datasetName"><td colspan="3">{{ dataset }}</td></tr>
-	
 		{% for x in assignments[dataset] %}
 			{% set i = '' ~ loop.index0 %}
 			<tr><td>{{ loop.index0 }}  assigned to: </td>
-			
-			
 			<td><select name="username" id="{{ dataset }}_{{ loop.index0 }}"><option></option>
-			{% for user in users %}
-				{% if assignments[dataset][i] == user %}
-					<option selected>{{ user }}</option>
-				{% else %}
-					<option>{{ user }}</option>
-				{% endif %}
+			{% for user in users %}{% if assignments[dataset][i] == user %}<option selected>{{ user }}</option>
+				{% else %}<option>{{ user }}</option>{% endif %}
 			{% endfor %}
 			</select></td>
-			
-			
-			
 			<td><input type="button" value="assign" onClick="assignBatch('{{ dataset }}', {{ loop.index0 }});"/></td></tr>
 		{% endfor %}
-		
-		
-		
 	</table></td>
-	
-	
 	{% endfor %}
 </table>
 </div>
-<div id="submissions">
-  
-</div>
 <script type="text/javascript">
-$(document).ready(function(){
 window.aTable = $("#adminDisplay").html();
 $.get("/api/admin?req=submissions")
-  .success(function(data){window.submissions = (JSON.parse(data));})
+  .success(function(data){window.submissions = data;})
   .fail(function(data){console.log(data);});
-)};
+
+
 function seeSubmissions(){
   $("#adminDisplay").html(window.submissions);
   }
 function assignInterface(){
   $("#adminDisplay").html(window.aTable);
-}
+  }
 function seeAssignments(){
   $.get("/api/admin?req=assignments")
-  .success(function(data){
-    $("#adminDisplay").html(data);
-  })
-  .fail(function(data){console.log(data);});
-}
+    .success(function(data){$("#adminDisplay").html(data);})
+    .fail(function(data){console.log(data);});
+  }
 </script>
 
 {% endblock %}
