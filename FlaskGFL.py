@@ -27,16 +27,21 @@ app = Flask(__name__)
 
 @app.route("/")
 def home():
-  
-  session['username'] = 'default' # delete this line when actually deploying to server
-  
   if request.environ.get('REMOTE_USER') or request.args.get('REMOTE_USER'):
 	  session['username'] = alias(request.environ.get('REMOTE_USER') or request.args.get('REMOTE_USER'))
   username = session.get('username')
   if not username:
     return 'Permission denied', 403
   return render_template('index.html', userDict=getUserDict(username))
-	
+
+@app.route('/login')
+def login():
+  username = request.args.get('user')
+  if not os.path.isfile(DIRECTORY+'users/'+username+'.json'):
+    newUser(username=username)
+  session['username'] = username
+  return redirect('/')
+
 @app.route('/annotate')
 def annotate():
   username = session.get('username')
@@ -46,7 +51,7 @@ def annotate():
 
 @app.route('/admin')
 def admin():
-	if unicode(request.environ.get('REMOTE_USER')) not in [u'mordo', u'nschneid', u'lingpenk', u'None']:
+	if unicode(session['username']) not in [u'mordo', u'nschneid', u'lingpenk']:
 		return 'Not Authorized', 500
 	updateDatasets()
 	userlist = [re.search(r'users.(.*)\.json', file).group(1) for file in glob.glob(DIRECTORY+'users/*.json')]
