@@ -12,7 +12,9 @@ function popForm(){
   $("#newswire").val(annoDic.newswire);
   $("#comment").val(annoDic.comment);
   $("#result").css("display", "none");
-  noSave();
+  //noSave();
+  document.getElementById("save").disabled=true;
+  $("#interface").css("background-color", "#fff")
   window.batchDict[window.currentInd].accessed.push(Math.round(+new Date()/1000));
   updateBatch();
 }
