@@ -18,14 +18,14 @@ function popForm(){
 }
 function noSave(){
 	var container = $("#interface");
-  container.css("border", "1em groove maroon");
-  container.css("background-color", "#a66");
+  //container.css("border", "1em groove maroon");
+  container.css("background-color", "#fcc");
   document.getElementById("save").disabled=true;
 }
 function yesSave(){
 	var container = $("#interface");
-	container.css("border", "1em groove green");
-	container.css("background-color", "#54ed4a");
+	//container.css("border", "1em groove green");
+	container.css("background-color", "#cfc");
 	document.getElementById("save").disabled=false;
 }
 function toConsole(){console.log(window.batchDict)}

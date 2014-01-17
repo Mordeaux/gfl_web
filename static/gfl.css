@@ -9,7 +9,7 @@
 body { 
 	font-family: tahoma, sans-serif; 
 	text-align:center;
-	background-color:#eed;
+	/*background-color:#eed;*/
 }
 
 .buttonLike { 
@@ -19,7 +19,7 @@ body {
 	padding-left: .2em; 
 	padding-right: .2em; 
 	background-color: #ccc; 
-	border: double .2em maroon; 
+/*	border: double .2em maroon; */
 	color: #000; 
 	text-decoration: none;
 	font-family: Verdana, sans-serif; 
@@ -39,7 +39,7 @@ vertical-align:top;
 font-size:1em;
 }
 
-#footer {
+#footer { display: none;
     height: 2.5em;
     width: 12em;
     border-color: #b35919;
@@ -80,12 +80,12 @@ font-size:1em;
 
 #interface textarea, #editor {
   width:45%;
-	border-radius:1em;
+	/*border-radius:1em;*/
 }
 
 #interface{
-	border:1em groove maroon;
-	border-radius:1.3em;
+	/*border:1em groove maroon;
+	border-radius:1.3em;*/
 }
 #interface form {
 	background-color:#a66;
