@@ -6,7 +6,7 @@
 	<script type="text/javascript" src="{{ url_for('static', filename='gfl.js') }}"></script>
 	<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='gfl.css') }}" />
 	{% block head %}{% endblock %}
-	<title>{% block title %}{% endblock %} - GFL Annotation Tool</title>
+	<title>{% block title %}{% endblock %} - {{ username }} - GFL Annotation Tool</title>
 </head>
 <body>
 {% block body %}{% endblock %}

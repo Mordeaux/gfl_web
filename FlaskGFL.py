@@ -32,7 +32,7 @@ def home():
   username = session.get('username')
   if not username:
     return 'Permission denied', 403
-  return render_template('index.html', userDict=getUserDict(username))
+  return render_template('index.html', userDict=getUserDict(username), username=session['username'])
 
 @app.route('/login')
 def login():
@@ -47,7 +47,7 @@ def annotate():
   username = session.get('username')
   if not username: return home()
   if not session.get('current'): return home()
-  return render_template('annotate.html', newswire=NEWSWIRE, c=session.get('current'))
+  return render_template('annotate.html', newswire=NEWSWIRE, c=session.get('current'), username=session['username'])
 
 @app.route('/admin')
 def admin():
@@ -57,7 +57,7 @@ def admin():
 	userlist = [re.search(r'users.(.*)\.json', file).group(1) for file in glob.glob(DIRECTORY+'users/*.json')]
 	with codecs.open(DIRECTORY+'metaData.json', 'r', 'utf-8') as f:
 		assignments = json.loads(f.read())['assignments']
-	return render_template('admin.html', users=userlist, assignments=assignments)
+	return render_template('admin.html', users=userlist, assignments=assignments, username=session['username'])
 
 @app.route('/api/setCurrent')
 def setCurrent():
@@ -188,7 +188,7 @@ def apiAdmin():
         dic[username][dataset] = {}
       with codecs.open(filename, 'r', 'utf-8') as f:
         dic[username][dataset] = [json.loads(line) for line in f.readlines()]
-    return render_template('viewSubmissions.html', displayDict=dic)
+    return render_template('viewSubmissions.html', displayDict=dic, username=session['username'])
   elif request.args.get('req') == 'assignments':
     dic = {}
     regex = r'(?:.*?/)+data/(.*?)\.json'
@@ -196,7 +196,7 @@ def apiAdmin():
       dataset = re.search(regex, filename).group(1)
       with codecs.open(filename, 'r', 'utf-8') as f:
         dic[dataset] = [json.loads(line) for line in f.readlines()]
-    return render_template('viewAssignments.html', dic=dic)
+    return render_template('viewAssignments.html', dic=dic, username=session['username'])
   
 
 	
