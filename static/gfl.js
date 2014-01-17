@@ -95,10 +95,10 @@ function postAnno() {
   window.batchDict[window.currentInd].newswire = $("#newswire").val();
   window.batchDict[window.currentInd].comment = $("#comment").val();
   window.batchDict[window.currentInd].submitted.push(Math.round(+new Date()/1000));
-  console.log(window.batchDict[window.currentInd]);
+  //console.log(window.batchDict[window.currentInd]);
   $.post("/api/submit", {"anno":JSON.stringify(window.batchDict[window.currentInd])})
     .success(function(data){
-      window.alert("Success! "+data);
+      //window.alert("Success! "+data);
       
     })
     .fail(function(data){
