@@ -8,13 +8,37 @@ By Michael Mordowanec, Nathan Schneider
 Getting Started
 ===============
 
-The code in this repository requires Python 2.7 and Flask 0.10.1. It also depends on the gfl_syntax project repository, which in turn uses parsimonious and graphviz to parse annotaions and create a .png representation.
+The code in this repository requires Python 2.7 and Flask 0.10.1. It also depends on the gfl_syntax project repository, which in turn uses parsimonious and graphviz to parse annotations and create a .png representation.
 
 To get started, simply cd to the repository and run:
 > python FlaskGFL.py
 
-This will create a server on you local machine, which will allow you to annotate in your browser. Installing on an actual server requires some expertise.
+This will create a server on you local machine, which will allow you to annotate in your browser, on the loopback IP, which should be printed to the terminal. Installing on an actual server requires some expertise.
+
+Input Files
+===========
 
 After running the utility, .preproc files can be added to the preproc directory in your app's data directory. .preproc is the format used by the gfl_syntax tools whose repository has scripts to help create it. Files added here will automatically be converted to JSON and appear as a list of batches on the admin screen.
+
+The .preproc format should look something like this for the sentence 'Mike said, "Ideally, I would have liked to use a much, much better example sentence."':
+
+---
+% ID uniqueID
+% RAW TEXT
+Mike said, "Ideally, I would have liked to use a much, much better example sentence."
+
+% TEXT
+Mike said , " Ideally , I would have liked to use a much~1 , much~2 better example sentence . "
+
+% ANNO
+Mike said Ideally I would have liked to use a much~1 much~2 better example sentence
+
+.preproc files can contain mainy such sentences, and if placed into the 'app_data/preproc' directory they will be sectioned off into batches which can be assigned to annotators in the annotation interface. The number of annotations per batch as well as the amount of overlap (for measuring inter-annotator agreement) can be set in the code. 
+
+Usage
+=====
+The annotation interface is designed to be as self-explanatory as possible. Logging in and out is left to be set up according to the needs of the user. Currently all that one need do is go to '/login?user=' followed by their username and the program will log them in. 
+
+The admin interface is restricted to only certain users, whose usernames can be hardcoded, or some other workaround depending on your needs.
 
 The annotation interface uses the Ace texteditor, so special thanks to them (http://ace.c9.io/). 
