@@ -21,8 +21,10 @@ DEBUG = True
 #----------------------------------------
 # Admins should be a list of usernames
 # who you wish to have access to the
-# admin interface to assign batches.
-ADMINS = ['none']
+# admin interface to assign batches. 
+# This should be a list of strings, eg:
+# ['admin1', 'admin2']
+ADMINS = []
 #----------------------------------------
 # The preproc directory is where the app
 # will look for your datasets. Be sure
@@ -30,12 +32,6 @@ ADMINS = ['none']
 # Check the README file if you aren't
 # sure what this means.
 PREPROC_DIR = os.path.join(directory, 'preproc')
-#----------------------------------------
-# This is the path to the python virtual
-# environment this project uses. The 
-# virtual environment should be Python 2.7
-# and have flask and parsimonious installed
-#PATH_TO_VENV = os.path.join(directory, 'env', 'bin', 'python')
 #----------------------------------------
 # These settings determine how the 
 # annotations will be split up amongst
