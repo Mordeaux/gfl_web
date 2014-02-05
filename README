@@ -16,43 +16,43 @@ The information below should be all you need to get set up. This project uses Py
 Step by Step, Day by Day
 ------------------------
 ### Clone this repo.
-```shell
+```
 $ git clone https://github.com/Mordeaux/gfl_web.git
 ```
 ### Clone submodules
-```shell
+```
 $ cd gfl_web
 $ git submodule init
 $ git submodule update
 ```
 ### Virtual Environment
 If you don't have virtualenv installed or don't wish to use one skip to Get modules.
-```shell
+```
 $ virtualenv env #or other location
 ```
 Change the shebang in the first line of run.py to read:
 #!/full/path/to/env/bin/python
-```shell
+```
 $ source path/to/env/bin/activate
 ```
 You should see the name of your virtual environment in the prompt:
-```shell
+```
 (env)$
 ```
 ### Get modules
 To download all the Python modules needed for this project, simply:
-```shell
+```
 $ pip install -r requirements.txt
 ```
 You also need Graphviz, which for Ubuntu can be installed like so:
-```shell
+```
 $ sudo apt-get install graphviz
 ```
 ### Configure
 Now open up config.py and change any settings you need to change. I highly recommend following the instructions in there to create a new SECRET_KEY.
 
 ### Fire it up, Fire it up
-```shell
+```
 $ ./run.py
 ```
 The app should begin running locally, and tell you which port it is on (typically http//127.0.0.1:5000). When deploying to a server, I have had luck using mod_wsgi, but the details for how to configure that are beyond the scope of this README. They are easily googleable.
