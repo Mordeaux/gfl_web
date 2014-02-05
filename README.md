@@ -20,7 +20,7 @@ Step by Step, Day by Day
 $ git clone https://github.com/Mordeaux/gfl_web.git
 ```
 ### Clone submodules
-```
+```shell
 $ cd gfl_web
 $ git submodule init
 $ git submodule update
@@ -31,7 +31,10 @@ If you don't have virtualenv installed or don't wish to use one skip to Get modu
 $ virtualenv env #or other location
 ```
 Change the shebang in the first line of run.py to read:
+```
 #!/full/path/to/env/bin/python
+```
+Then:
 ```
 $ source path/to/env/bin/activate
 ```
