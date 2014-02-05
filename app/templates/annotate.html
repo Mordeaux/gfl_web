@@ -42,11 +42,11 @@
 <a class="buttonLike" href="{{ url_for('home') }}">Home</a>
 <div id="result"></div>
 
-<script src="{{ url_for('static', filename='src-min-noconflict/ace.js') }}" type="text/javascript" charset="utf-8"></script>
+<script src="{{ url_for('static', filename='ace-builds/src-min-noconflict/ace.js') }}" type="text/javascript" charset="utf-8"></script>
 <script>
     var editor = ace.edit("editor");
     editor.setTheme("ace/theme/dreamweaver");
-    editor.getSession().setMode("{{ url_for('static', filename="ace/mode/plain_text") }}");
+    editor.getSession().setMode("{{ url_for('static', filename="ace-builds/src-min-noconflict/mode-plain_text.js") }}");
     
     var dataset = "{{ c[0] }}";
     var batch = "{{ c[1] }}";
