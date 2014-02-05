@@ -1,5 +1,5 @@
 import re, codecs, json, time, os, sys, glob
-from FlaskGFL import DIRECTORY, ANNOTATIONS_PER_BATCH, OVERLAP
+from FlaskGFL import DIRECTORY, ANNOTATIONS_PER_BATCH, OVERLAP, USER_DIR, PREPROC_DIR, DATA_DIR
 
 def training():
 	sents = """Birds sing .
@@ -53,7 +53,7 @@ def training():
 	for i in range(len(annoList)):
 		chunk[str(i)] = annoList[i]
 	dic = {'0':chunk}
-	with codecs.open(DIRECTORY+'training.json', 'w', 'utf-8') as f:
+	with codecs.open(os.path.join(DIRECTORY, 'training.json'), 'w', 'utf-8') as f:
 		f.write(json.dumps(dic))
 
 def addDataSet(preproc, sizeOfBatch=10, overlap=4):
@@ -65,7 +65,7 @@ def addDataSet(preproc, sizeOfBatch=10, overlap=4):
 	datasetName = re.search(r'.*preproc.(.*)\.preproc', preproc).group(1)
 	print datasetName
 	text = ''.join(codecs.open(preproc, 'r', 'utf-8').readlines())
-	assert not os.path.isfile(DIRECTORY+'data/'+datasetName+'.json')
+	assert not os.path.isfile(os.path.join(DATA_DIR, datasetName+'.json'))
 	preprocList = re.findall(r'---\n.*?(?=---\n|$)', text, re.DOTALL)
 
 	annoList = []
@@ -85,7 +85,7 @@ def addDataSet(preproc, sizeOfBatch=10, overlap=4):
 				}
 		annoList.append(dic)
 	annoList[-1]['last'] = True
-	with codecs.open(DIRECTORY+'data/'+datasetName+'.json', 'w', 'utf-8') as f:
+	with codecs.open(os.path.join(DATA_DIR, datasetName+'.json'), 'w', 'utf-8') as f:
 		while len(annoList) > sizeOfBatch * 1.5:
 			chunk = {'assignedTo':[], 'locked':False}
 			for i in range(sizeOfBatch):
@@ -100,37 +100,37 @@ def addDataSet(preproc, sizeOfBatch=10, overlap=4):
 
 
 def updateMetaData():
-	"""Assignments, aliases."""
-	meta = {'assignments':{}, 'aliases':{}}
-	if os.path.isfile(DIRECTORY+'metaData.json'):
-		meta = json.loads(codecs.open(DIRECTORY+'metaData.json', 'r', 'utf-8').read())
-	for file in glob.glob(DIRECTORY+'data/*.json'):
-		datasetName = re.search(r'.*data.(.*)\.json', file).group(1)
-		if datasetName not in meta['assignments']:
-			with codecs.open(file, 'r', 'utf-8') as f:
-				dataset = f.readlines()
-			meta['assignments'][datasetName] = {}
-			for i in range(len(dataset)):
-				meta['assignments'][datasetName][str(i)] = ''
-	with codecs.open(DIRECTORY+'metaData.json', 'w', 'utf-8') as f:
-		f.write(json.dumps(meta))
+    """Assignments, aliases."""
+    meta = {'assignments':{}, 'aliases':{}}
+    if os.path.isfile(os.path.join(DIRECTORY, 'metaData.json')):
+        meta = json.loads(codecs.open(os.path.join(DIRECTORY, 'metaData.json'), 'r', 'utf-8').read())
+    for file in glob.glob(os.path.join(DATA_DIR, '*.json')):
+        datasetName = re.search(DATA_DIR+os.sep+r'(.*)\.json', file).group(1)
+        if datasetName not in meta['assignments']:
+            with codecs.open(file, 'r', 'utf-8') as f:
+                dataset = f.readlines()
+            meta['assignments'][datasetName] = {}
+            for i in range(len(dataset)):
+                meta['assignments'][datasetName][str(i)] = ''
+    with codecs.open(os.path.join(DIRECTORY, 'metaData.json'), 'w', 'utf-8') as f:
+        f.write(json.dumps(meta))
 
 
 def updateDatasets():
-	for file in glob.glob(DIRECTORY+'preproc/*.preproc'):
-		jsonPath = DIRECTORY+'data/'+re.search(r'.*preproc.(.*)\.preproc', file).group(1)+'.json'
-		if not os.path.isfile(jsonPath):
-			addDataSet(file, sizeOfBatch=ANNOTATIONS_PER_BATCH, overlap=OVERLAP)
-	updateMetaData()
+    for file in glob.glob(os.path.join(PREPROC_DIR, '*.preproc')):
+        jsonPath = os.path.join(DATA_DIR, re.search(r'.*preproc.(.*)\.preproc', file).group(1)+'.json')
+        if not os.path.isfile(jsonPath):
+            addDataSet(file, sizeOfBatch=ANNOTATIONS_PER_BATCH, overlap=OVERLAP)
+    updateMetaData()
 
 
 def getUserDict(username):
-	with codecs.open(DIRECTORY+'users/'+alias(username)+'.json', 'r', 'utf-8') as f:
+	with codecs.open(os.path.join(USER_DIR, alias(username)+'.json'), 'r', 'utf-8') as f:
 		annoDic = json.loads(f.read())
 		return annoDic
 		
 def saveUserDict(username, annoDic):
-	with codecs.open(DIRECTORY+'users/'+alias(username)+'.json', 'w', 'utf-8') as f:
+	with codecs.open(os.path.join(USER_DIR, alias(username)+'.json'), 'w', 'utf-8') as f:
 		f.write(json.dumps(annoDic))
 		
 

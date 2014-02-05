@@ -9,21 +9,23 @@ Created Fall 2013
 #make it possible for admin to impersonate users--not finished
 
 from flask import Flask, render_template, request, redirect, send_file, session
-from functions import *
 import sys, os, codecs, json, time, glob
 dirname = os.path.dirname(__file__)
-filename = os.path.join(dirname, 'gfl_syntax/scripts')
+parentDir = os.path.abspath(os.path.join(dirname, os.path.pardir))
+filename = os.path.join(parentDir, 'gfl_syntax', 'scripts')
 sys.path.insert(0, filename)
 import view
+sys.path.insert(0, parentDir)
+from config import *
+DATA_DIR = os.path.join(DIRECTORY, 'data')
+USER_DIR = os.path.join(DIRECTORY, 'users')
+TEMP_DIR = os.path.join(DIRECTORY, 'temp')
+OUTPUT_DIR = os.path.join(DIRECTORY, 'output')
 
-
-OUTPUT = '_output.json' # Will be appended to usernames to create the output file name
-NEWSWIRE = True # Toggles normalization task
-DIRECTORY =os.path.join(dirname, 'app_data/') # The directory where the app will store its data.
-ANNOTATIONS_PER_BATCH = 10 # Number of annotation units to be in each batch assigned to annotator
-OVERLAP = 4 #how many annotations per batch will be doubly annotated, must be even number.
 
 app = Flask(__name__)
+
+from functions import *
 
 @app.route("/")
 def home():
@@ -37,7 +39,7 @@ def home():
 @app.route('/login')
 def login():
   username = request.args.get('user')
-  if not os.path.isfile(DIRECTORY+'users/'+username+'.json'):
+  if not os.path.isfile(os.path.join(USER_DIR, username+'.json')):
     newUser(username=username)
   session['username'] = username
   return redirect('/')
@@ -47,17 +49,17 @@ def annotate():
   username = session.get('username')
   if not username: return home()
   if not session.get('current'): return home()
-  return render_template('annotate.html', newswire=NEWSWIRE, c=session.get('current'), username=session['username'])
+  return render_template('annotate.html', newswire=NORMALIZATION_TASK, c=session.get('current'), username=session['username'])
 
 @app.route('/admin')
 def admin():
-	if unicode(session['username']) not in [u'mordo', u'nschneid', u'lingpenk']:
-		return 'Not Authorized', 500
-	updateDatasets()
-	userlist = [re.search(r'users.(.*)\.json', file).group(1) for file in glob.glob(DIRECTORY+'users/*.json')]
-	with codecs.open(DIRECTORY+'metaData.json', 'r', 'utf-8') as f:
-		assignments = json.loads(f.read())['assignments']
-	return render_template('admin.html', users=userlist, assignments=assignments, username=session['username'])
+    if unicode(session['username']) not in ADMINS:
+        return 'Not Authorized', 500
+    updateDatasets()
+    userlist = [re.search(USER_DIR+os.sep+r'(.*)\.json', file).group(1) for file in glob.glob(os.path.join(USER_DIR, '*.json'))]
+    with codecs.open(os.path.join(DIRECTORY, 'metaData.json'), 'r', 'utf-8') as f:
+        assignments = json.loads(f.read())['assignments']
+    return render_template('admin.html', users=userlist, assignments=assignments, username=session['username'])
 
 @app.route('/api/setCurrent')
 def setCurrent():
@@ -96,7 +98,7 @@ def submit():
   if not username: return home()
   if session.get('current')[0] in ['training', 'new']:
       return 'OK',200
-  with codecs.open(DIRECTORY+'output/'+session.get('current')[0]+'_'+username+OUTPUT, 'a', 'utf-8') as f:
+  with codecs.open(os.path.join(OUTPUT_DIR, session.get('current')[0]+'_'+username+OUTPUT), 'a', 'utf-8') as f:
     f.write(request.form.get('anno'))
     f.write('\n')
   x = True
@@ -107,7 +109,7 @@ def submit():
         x = False
   if x:
     print 'working'
-    with codecs.open(DIRECTORY+'/data/'+session.get('current')[0]+'.json', 'r', 'utf-8') as f:
+    with codecs.open(os.path.join(DATA_DIR, session.get('current')[0]+'.json'), 'r', 'utf-8') as f:
       dataset = f.readlines()
       batch = json.loads(dataset[int(session.get('current')[1])])
     for name in batch['assignedTo']:
@@ -117,7 +119,7 @@ def submit():
         print batch['assignedTo'].index(name)
         batch['assignedTo'][batch['assignedTo'].index(name)] = name + ' (completed)'
     dataset[int(session.get('current')[1])] = json.dumps(batch) + '\n'
-    with codecs.open(DIRECTORY+'/data/'+session.get('current')[0]+'.json', 'w', 'utf-8') as f:
+    with codecs.open(os.path.join(DATA_DIR, session.get('current')[0]+'.json'), 'w', 'utf-8') as f:
       for line in dataset:
         f.write(line)
   return 'OK',200
@@ -128,11 +130,11 @@ def analyze():
 	sent = request.args.get('sentence')
 	annotation = request.args.get('anno')
 	preproc = u'% TEXT\n{0}\n% ANNO\n{1}'.format(sent, annotation)
-	with codecs.open(DIRECTORY+'temp/'+username+'.txt', 'w', 'utf-8') as f:
+	with codecs.open(os.path.join(TEMP_DIR, username+'.txt'), 'w', 'utf-8') as f:
 		f.write(preproc)
 	try: 
-		view.main([DIRECTORY+'temp/'+username+'.txt'])
-		return send_file(DIRECTORY+'temp/'+username+'.0.png', mimetype='image/png')
+		view.main([os.path.join(TEMP_DIR, username+'.txt')])
+		return send_file(os.path.join(TEMP_DIR, username+'.0.png'), mimetype='image/png')
 	except Exception as ex:
 		return str(ex), 500 
 		
@@ -142,7 +144,7 @@ def assign():
   dataset = request.args.get('dataset')
   batch = int(request.args.get('batch'))
   username = alias(request.args.get('user'))
-  with codecs.open(DIRECTORY+'data/'+dataset+'.json', 'r', 'utf-8') as f:
+  with codecs.open(os.path.join(DATA_DIR, dataset+'.json'), 'r', 'utf-8') as f:
     lines = f.readlines()
   dic = json.loads(lines[batch])
   dic['assignedTo'].append(username)
@@ -153,13 +155,13 @@ def assign():
   userDict[dataset][str(batch)] = dic
   saveUserDict(username, userDict)
   lines[batch] = json.dumps(dic) + '\n'
-  with codecs.open(DIRECTORY+'data/'+dataset+'.json', 'w', 'utf-8') as f:
+  with codecs.open(os.path.join(DATA_DIR, dataset+'.json'), 'w', 'utf-8') as f:
     for line in lines:
       f.write(line)
-  with codecs.open(DIRECTORY+'metaData.json', 'r', 'utf-8') as f:
+  with codecs.open(os.path.join(DIRECTORY, 'metaData.json'), 'r', 'utf-8') as f:
     meta = json.loads(f.read())
   meta['assignments'][dataset][str(batch)] = username
-  with codecs.open(DIRECTORY+'metaData.json', 'w', 'utf-8') as f:
+  with codecs.open(os.path.join(DIRECTORY, 'metaData.json'), 'w', 'utf-8') as f:
     f.write(json.dumps(meta))
   return 'OK',200
 		
@@ -168,9 +170,9 @@ def newUser(username=False):
 	if not username:
 		username = request.args.get('newUser')
 	userDict = {}
-	with codecs.open(DIRECTORY+'training.json', 'r', 'utf-8') as f:
+	with codecs.open(os.path.join(DIRECTORY, 'training.json'), 'r', 'utf-8') as f:
 		userDict['training'] = json.loads(f.read())
-	with codecs.open(DIRECTORY+'users/'+username+'.json', 'w', 'utf-8') as f:
+	with codecs.open(os.path.join(USER_DIR, username+'.json'), 'w', 'utf-8') as f:
 		f.write(json.dumps(userDict))
 	return 'OK', 200
 
@@ -179,7 +181,7 @@ def apiAdmin():
   if request.args.get('req') == 'submissions':
     dic = {}
     regex = r'(?:.*?/)+(.*?)_(.*?)'+OUTPUT
-    for filename in glob.glob(DIRECTORY+'output/*'):
+    for filename in glob.glob(os.path.join(OUTPUT_DIR, '*')):
       username = re.search(regex, filename).group(2)
       dataset = re.search(regex, filename).group(1)
       if username not in dic:
@@ -192,7 +194,7 @@ def apiAdmin():
   elif request.args.get('req') == 'assignments':
     dic = {}
     regex = r'(?:.*?/)+data/(.*?)\.json'
-    for filename in glob.glob(DIRECTORY+'data/*.json'):
+    for filename in glob.glob(os.path.join(DATA_DIR, '*.json')):
       dataset = re.search(regex, filename).group(1)
       with codecs.open(filename, 'r', 'utf-8') as f:
         dic[dataset] = [json.loads(line) for line in f.readlines()]
@@ -202,21 +204,18 @@ def apiAdmin():
 	
 
 
-app.secret_key = "$e\x1c~:\xa0\xf7\xcfK\xc6\xe3Nr\xae\x84\n'\x9a\x9f\x1f\xfaJ\xc7\x97"
+app.secret_key = SECRET_KEY
 
 if __name__ == "__main__":
-	directories = [DIRECTORY, DIRECTORY+'data/', DIRECTORY+'output/', DIRECTORY+'users/', DIRECTORY+'preproc/', DIRECTORY+'temp/']
-	for directory in directories:
-		if not os.path.exists(directory):
-			os.mkdir(directory)
-	if not os.path.isfile(DIRECTORY+'training.json'):
-		training()
-	if glob.glob(DIRECTORY+'users/*.json') == []:
-		newUser(username='default')
+    directories = [DIRECTORY, DATA_DIR, OUTPUT_DIR, USER_DIR, PREPROC_DIR, TEMP_DIR]
+    for directory in directories:
+        print directory
+        if not os.path.exists(directory):
+            os.mkdir(directory)
+    if not os.path.isfile(os.path.join(DIRECTORY, 'training.json')):
+        training()
+    if glob.glob(os.path.join(DIRECTORY, 'users', '*.json')) == []:
+        newUser(username='default')
 
 
 	app.run(debug=True)
-    #app.run(debug=True) #in debug mode server reloads itself automatically on code changes. 
-						#Do not use on the actual server, hackers can exploit it somehow to run arbitrary code
-    
-
