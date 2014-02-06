@@ -20,7 +20,7 @@ Step by Step, Day by Day
 $ git clone https://github.com/Mordeaux/gfl_web.git
 ```
 ### Clone submodules
-```shell
+```
 $ cd gfl_web
 $ git submodule init
 $ git submodule update
@@ -67,7 +67,7 @@ Input Files
 After running the utility, .preproc files can be added to the preproc directory in the gfl_web directory (or the place specified in config.py). .preproc is the format used by the gfl_syntax tools whose repository (included as a submodule) has scripts to help create it. Files added here will automatically be converted to JSON and appear as a list of batches on the admin screen.
 
 The .preproc format should look something like this for the sentence 'Mike said, "Ideally, I would have liked to use a much, much better example sentence."':
-
+```
 ---
 % ID uniqueID
 % RAW TEXT
@@ -78,7 +78,7 @@ Mike said , " Ideally , I would have liked to use a much~1 , much~2 better examp
 
 % ANNO
 Mike said Ideally I would have liked to use a much~1 much~2 better example sentence
-
+```
 .preproc files can contain many such sentences, and if placed into the preproc directory they will be sectioned off into batches which can be assigned to annotators in the admin interface. The number of annotations per batch as well as the amount of overlap (for measuring inter-annotator agreement) can be set in config.py.
 
 Usage
@@ -100,3 +100,5 @@ https://github.com/brendano/gfl_syntax/blob/master/guidelines/guidelines.md
 Direct any questions about the web interface to Michael Mordowanec:
 https://github.com/Mordeaux
 
+Noah's ARK at the Language Technologies Institute at Carnegie Mellon University:
+http://www.ark.cs.cmu.edu/
