@@ -1,5 +1,3 @@
-// use jquery
-
 
 function popForm(){
   if(window.currentInd <= 0){window.currentInd = "0";}
@@ -57,7 +55,6 @@ function loadImage() {
 	var result = $("#result");
 
 	window.batchDict[window.currentInd].analyzed.push(Math.round(+new Date()/1000));
-	window.batchDict[window.currentInd].anno = editor.getValue();
 	$.get("/api/analyzegfl.png?sentence=" + sentenceStr + "&anno="+ annotationStr)
 	.success(function(data){
 		result.html("<img style=\"border-radius:1em;border:2px solid black;\" src=\"/api/analyzegfl.png?sentence=" + sentenceStr + "&anno="+ annotationStr + "\"/>");

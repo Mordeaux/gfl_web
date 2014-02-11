@@ -1,7 +1,7 @@
 gfl_web
 =======
 
-Uses Python's Flask module to create a web-based interface for GFL-FUDGE annotation. 
+Uses Python's Flask module to create a web-based interface for GFL-FUDG annotation. 
 
 By Michael Mordowanec, Nathan Schneider
 
@@ -9,21 +9,17 @@ GitHub: http://github.com/Mordeaux/gfl_web
 
 Setup
 =====
-I used Linux (Ubuntu and Amazon AMI) developing this so these instructions are more Linux-geared. Windows users would probably do something similar. The 'best-practices' types in web development recommend the use of a Python Virtual Environment when deploying to a server, which will minimize the chance that installed modules needed for this code will conflict with those installed in /usr/bin/python. I also recommend that you use a virtual environment. Installation of the virtualenv tool is not explained here.
+I used Linux (Ubuntu and Amazon AMI) developing this so these instructions are more Linux-geared. Windows users would probably do something similar. 
 
-The information below should be all you need to get set up. This project uses Python 2.7. I have deployed it on several version of Python 2.7. It will fail if you are using Python 2.6. 
+The 'best-practices' types in web development recommend the use of a Python Virtual Environment when deploying to a server, which will minimize the chance that installed modules needed for this code will conflict with those installed in /usr/bin/python. I also recommend that you use a virtual environment. Installation of the virtualenv tool is not explained here.
+
+The information below should be all you need to get set up. This project uses Python 2.7. I have deployed it on several versions of Python 2.7. It will fail if you are using Python 2.6. 
 
 Step by Step, Day by Day
 ------------------------
-### Clone this repo.
+### Clone this repo and its submodules, gfl_syntax and ace-builds web editor.
 ```
-$ git clone https://github.com/Mordeaux/gfl_web.git
-```
-### Clone submodules
-```
-$ cd gfl_web
-$ git submodule init
-$ git submodule update
+$ git clone --recursive https://github.com/Mordeaux/gfl_web.git
 ```
 ### Virtual Environment
 If you don't have virtualenv installed or don't wish to use one skip to Get modules.
@@ -55,6 +51,7 @@ $ sudo apt-get install graphviz
 Now open up config.py and change any settings you need to change. I highly recommend following the instructions in there to create a new SECRET_KEY.
 
 ### Fire it up, Fire it up
+Enter this:
 ```
 $ ./run.py
 ```
@@ -67,18 +64,18 @@ Input Files
 After running the utility, .preproc files can be added to the preproc directory in the gfl_web directory (or the place specified in config.py). .preproc is the format used by the gfl_syntax tools whose repository (included as a submodule) has scripts to help create it. Files added here will automatically be converted to JSON and appear as a list of batches on the admin screen.
 
 The .preproc format should look something like this for the sentence 'Mike said, "Ideally, I would have liked to use a much, much better example sentence."':
-```
----
-% ID uniqueID
-% RAW TEXT
-Mike said, "Ideally, I would have liked to use a much, much better example sentence."
 
-% TEXT
-Mike said , " Ideally , I would have liked to use a much~1 , much~2 better example sentence . "
+    ---
+    % ID uniqueID
+    % RAW TEXT
+    Mike said, "Ideally, I would have liked to use a much, much better example sentence."
 
-% ANNO
-Mike said Ideally I would have liked to use a much~1 much~2 better example sentence
-```
+    % TEXT
+    Mike said , " Ideally , I would have liked to use a much~1 , much~2 better example sentence . "
+
+    % ANNO
+    Mike said Ideally I would have liked to use a much~1 much~2 better example sentence
+
 .preproc files can contain many such sentences, and if placed into the preproc directory they will be sectioned off into batches which can be assigned to annotators in the admin interface. The number of annotations per batch as well as the amount of overlap (for measuring inter-annotator agreement) can be set in config.py.
 
 Usage

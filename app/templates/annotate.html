@@ -46,7 +46,7 @@
 <script>
     var editor = ace.edit("editor");
     editor.setTheme("ace/theme/dreamweaver");
-    editor.getSession().setMode("{{ url_for('static', filename="ace-builds/src-min-noconflict/mode-plain_text.js") }}");
+    editor.getSession().setMode("{{ url_for('static', filename="ace-builds/src-min-noconflict/mode-plain_text.") }}");
     
     var dataset = "{{ c[0] }}";
     var batch = "{{ c[1] }}";
