@@ -38,19 +38,25 @@
 	<input class="buttonLike" type="button" value="Analyze" onclick="loadImage();"/>
 	<input class="buttonLike" type="button" id="save" value="Submit" onclick = "postAnno();" disabled/>
 	<input class="buttonLike" type="button" id="next" value="&gt;" onclick="nextAnno();"/>
+        <br>
+        <a class="buttonLike" href="{{ url_for('home') }}">Home</a>
 	</div>
-<a class="buttonLike" href="{{ url_for('home') }}">Home</a>
 <div id="result"></div>
-
+<div id="answer"></div>
 <script src="{{ url_for('static', filename='ace-builds/src-min-noconflict/ace.js') }}" type="text/javascript" charset="utf-8"></script>
 <script>
     var editor = ace.edit("editor");
     editor.setTheme("ace/theme/dreamweaver");
-    editor.getSession().setMode("{{ url_for('static', filename="ace-builds/src-min-noconflict/mode-plain_text.") }}");
+    editor.getSession().setMode("{{ url_for('static', filename="ace-builds/src-min-noconflict/mode-plain_text") }}");
     
     var dataset = "{{ c[0] }}";
     var batch = "{{ c[1] }}";
-    
+  
+function showAnswer(){
+    var index = parseInt(window.currentInd)+1;
+    $('#answer').html('<img src="{{ url_for('static', filename='training/') }}'+index.toString()+'.png" />');
+}
+  
   $(document).ready(function(){
     $.get("/api/getBatch?dataset="+encodeURIComponent(dataset)+"&batch="+encodeURIComponent(batch))
     .success(function(data){
@@ -72,6 +78,11 @@
     .fail(function(data){
       console.log(data);
     });
+   if (dataset == 'training'){
+        $('#interface').append('<input class="buttonLike" type="button" id="show" onclick="showAnswer();" value="Show Possible Annotation" />');
+   }
 });
 </script>
+
+
 {% endblock %}
