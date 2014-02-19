@@ -63,7 +63,6 @@ def addDataSet(preproc, sizeOfBatch=10, overlap=4):
 	assert os.path.isfile(preproc)
 	print sizeOfBatch
 	datasetName = re.search(r'.*preproc.(.*)\.preproc', preproc).group(1)
-	print datasetName
 	text = ''.join(codecs.open(preproc, 'r', 'utf-8').readlines())
 	assert not os.path.isfile(os.path.join(DATA_DIR, datasetName+'.json'))
 	preprocList = re.findall(r'---\n.*?(?=---\n|$)', text, re.DOTALL)

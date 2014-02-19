@@ -3,11 +3,6 @@ Created Fall 2013
 
 @author: Michael Mordowanec (Mordeaux)
 """
-
-# may want to distinguish between username and name on system
-#lock mode for particular batches, lets user see but not modify--not finished
-#make it possible for admin to impersonate users--not finished
-
 from flask import Flask, render_template, request, redirect, send_file, session
 import sys, os, codecs, json, time, glob
 dirname = os.path.dirname(__file__)
@@ -108,15 +103,11 @@ def submit():
       if not batch[anno]['submitted']:
         x = False
   if x:
-    print 'working'
     with codecs.open(os.path.join(DATA_DIR, session.get('current')[0]+'.json'), 'r', 'utf-8') as f:
       dataset = f.readlines()
       batch = json.loads(dataset[int(session.get('current')[1])])
     for name in batch['assignedTo']:
       if name == username:
-        print name
-        print batch['assignedTo']
-        print batch['assignedTo'].index(name)
         batch['assignedTo'][batch['assignedTo'].index(name)] = name + ' (completed)'
     dataset[int(session.get('current')[1])] = json.dumps(batch) + '\n'
     with codecs.open(os.path.join(DATA_DIR, session.get('current')[0]+'.json'), 'w', 'utf-8') as f:
@@ -218,4 +209,4 @@ if __name__ == "__main__":
         newUser(username='default')
 
 
-	app.run(debug=True)
+    app.run(debug=True)
