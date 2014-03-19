@@ -64,6 +64,13 @@ The > man < won
 who > won < (the > car)
 ```
 
+Verbs
+=====
+A finite verb is the head of a chain of auxiliary and other verbs.
+```
+I > would < have < been < being < fed
+```
+
 Training Set
 ============
 Try out the training set and compare your graphs to the examples. There are sometimes multiple possible parses, so the examples represent only one of those. 
