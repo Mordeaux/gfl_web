@@ -71,6 +71,17 @@ A finite verb is the head of a chain of auxiliary and other verbs.
 I > would < have < been < being < fed
 ```
 
+Multiple Roots
+==============
+Some sentences may have elements which are separately rooted from the rest of the sentence. Discourse connectives and other similar phenomena are common examples of this. If an element of a sentence cannot be easily fit into the syntax of the rest of the sentence you can mark the head of each element with '**'.
+```
+Anyways , on the other hand , I don't know
+
+Anyways**
+on** < ({the other} > hand)
+I > don't** < know
+```
+
 Training Set
 ============
 Try out the training set and compare your graphs to the examples. There are sometimes multiple possible parses, so the examples represent only one of those. 
