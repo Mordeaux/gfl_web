@@ -4,6 +4,7 @@ Created Fall 2013
 @author: Michael Mordowanec (Mordeaux)
 """
 from flask import Flask, render_template, request, redirect, send_file, session
+from flask.ext.login import LoginManager, login_required, login_user
 import sys, os, codecs, json, time, glob
 dirname = os.path.dirname(__file__)
 parentDir = os.path.abspath(os.path.join(dirname, os.path.pardir))
@@ -16,50 +17,53 @@ DATA_DIR = os.path.join(DIRECTORY, 'data')
 USER_DIR = os.path.join(DIRECTORY, 'users')
 TEMP_DIR = os.path.join(DIRECTORY, 'temp')
 OUTPUT_DIR = os.path.join(DIRECTORY, 'output')
+from user import User
 
+login_manager = LoginManager()
 
 app = Flask(__name__)
+
+login_manager.init_app(app)
+@login_manager.user_loader
+def load_user(userid):
+    return User.get(userid)
+login_manager.login_view = "login"
 
 from functions import *
 
 @app.route("/")
+@login_required
 def home():
-  if request.environ.get('REMOTE_USER') or request.args.get('REMOTE_USER'):
-	  session['username'] = alias(request.environ.get('REMOTE_USER') or request.args.get('REMOTE_USER'))
-  username = session.get('username')
-  if not username:
-    return 'Permission denied', 403
-  return render_template('index.html', userDict=getUserDict(username), username=session['username'])
+  return render_template('index.html', userDict=getUserDict(current_user.get_id()), username=current_user.get_id())
 
 @app.route('/login')
 def login():
   username = request.args.get('user')
   if not os.path.isfile(os.path.join(USER_DIR, username+'.json')):
     newUser(username=username)
-  session['username'] = username
+  login_user(unicode(username))
   return redirect('/')
 
 @app.route('/annotate')
+@login_required
 def annotate():
-  username = session.get('username')
-  if not username: return home()
   if not session.get('current'): return home()
-  return render_template('annotate.html', newswire=NORMALIZATION_TASK, c=session.get('current'), username=session['username'])
+  return render_template('annotate.html', newswire=NORMALIZATION_TASK, c=session.get('current'), username=current_user.get_id())
 
 @app.route('/admin')
+@login_required
 def admin():
-    if unicode(session['username']) not in ADMINS:
+    if current_user.get_id() not in ADMINS:
         return 'Not Authorized', 500
     updateDatasets()
     userlist = [re.search(USER_DIR+os.sep+r'(.*)\.json', file).group(1) for file in glob.glob(os.path.join(USER_DIR, '*.json'))]
     with codecs.open(os.path.join(DIRECTORY, 'metaData.json'), 'r', 'utf-8') as f:
         assignments = json.loads(f.read())['assignments']
-    return render_template('admin.html', users=userlist, assignments=assignments, username=session['username'])
+    return render_template('admin.html', users=userlist, assignments=assignments, username=current_user.get_id())
 
 @app.route('/api/setCurrent')
+@login_required
 def setCurrent():
-  username = session.get('username')
-  if not username: return home()
   dataset = request.args.get('dataset')
   batch = request.args.get('batch')
   session['current'] = (dataset, str(batch))
@@ -67,37 +71,34 @@ def setCurrent():
   return 'OK',200
 
 @app.route('/api/getBatch')
+@login_required
 def getBatch():
-  username = session.get('username')
-  if not username: return home()
-  annoDic = getUserDict(username)
+  annoDic = getUserDict(current_user.get_id())
   if request.args.get('dataset') == 'new':
     return json.dumps({'0':{'id':int(time.time()), 'sent':'', 'anno':'', 'last':True, 'number':0, 'userAdd':True, 'analyzed':[], 'accessed':[], 'submitted':[], 'pos':None}, '1':'', '2':'', '3':''})
   return json.dumps(annoDic[request.args.get('dataset')][request.args.get('batch')])
 
 @app.route('/api/updateBatch', methods=['POST'])
+@login_required
 def updateBatch():
-  username = session.get('username')
-  if not username: return home()
   if session.get('current')[0] == 'new':
     return 'OK',200
-  annoDic = getUserDict(username)
+  annoDic = getUserDict(current_user.get_id())
   newBatch = json.loads(request.form.get('batch'))
   annoDic[session.get('current')[0]][session.get('current')[1]] = newBatch
-  saveUserDict(username, annoDic)
+  saveUserDict(current_user.get_id(), annoDic)
   return 'OK',200
 
 @app.route('/api/submit', methods=['POST'])
+@login_required
 def submit():
-  username = session.get('username')
-  if not username: return home()
   if session.get('current')[0] in ['training', 'new']:
       return 'OK',200
-  with codecs.open(os.path.join(OUTPUT_DIR, session.get('current')[0]+'_'+username+OUTPUT), 'a', 'utf-8') as f:
+  with codecs.open(os.path.join(OUTPUT_DIR, session.get('current')[0]+'_'+current_user.get_id()+OUTPUT), 'a', 'utf-8') as f:
     f.write(request.form.get('anno'))
     f.write('\n')
   x = True
-  batch = getUserDict(username)[session.get('current')[0]][session.get('current')[1]]
+  batch = getUserDict(current_user.get_id())[session.get('current')[0]][session.get('current')[1]]
   for anno in batch:
     if anno not in ['assignedTo', 'locked']:
       if not batch[anno]['submitted']:
@@ -107,7 +108,7 @@ def submit():
       dataset = f.readlines()
       batch = json.loads(dataset[int(session.get('current')[1])])
     for name in batch['assignedTo']:
-      if name == username:
+      if name == current_user.get_id():
         batch['assignedTo'][batch['assignedTo'].index(name)] = name + ' (completed)'
     dataset[int(session.get('current')[1])] = json.dumps(batch) + '\n'
     with codecs.open(os.path.join(DATA_DIR, session.get('current')[0]+'.json'), 'w', 'utf-8') as f:
@@ -116,22 +117,22 @@ def submit():
   return 'OK',200
 
 @app.route('/api/analyzegfl.png', methods=['GET'])
+@login_required
 def analyze(): 
-	username = session.get('username')
 	sent = request.args.get('sentence')
 	annotation = request.args.get('anno')
 	preproc = u'% TEXT\n{0}\n% ANNO\n{1}'.format(sent, annotation)
-	with codecs.open(os.path.join(TEMP_DIR, username+'.txt'), 'w', 'utf-8') as f:
+	with codecs.open(os.path.join(TEMP_DIR, current_user.get_id()+'.txt'), 'w', 'utf-8') as f:
 		f.write(preproc)
 	try: 
-		view.main([os.path.join(TEMP_DIR, username+'.txt')])
-		return send_file(os.path.join(TEMP_DIR, username+'.0.png'), mimetype='image/png')
+		view.main([os.path.join(TEMP_DIR, current_user.get_id()+'.txt')])
+		return send_file(os.path.join(TEMP_DIR, current_user.get_id()+'.0.png'), mimetype='image/png')
 	except Exception as ex:
 		return str(ex), 500 
 		
 @app.route('/api/assign')
+@login_required
 def assign():
-  if not session.get('username'): return home()
   dataset = request.args.get('dataset')
   batch = int(request.args.get('batch'))
   username = alias(request.args.get('user'))
@@ -168,6 +169,7 @@ def newUser(username=False):
 	return 'OK', 200
 
 @app.route('/api/admin')
+@login_required
 def apiAdmin():
   if request.args.get('req') == 'submissions':
     dic = {}
@@ -189,7 +191,7 @@ def apiAdmin():
       dataset = re.search(regex, filename).group(1)
       with codecs.open(filename, 'r', 'utf-8') as f:
         dic[dataset] = [json.loads(line) for line in f.readlines()]
-    return render_template('viewAssignments.html', dic=dic, username=session['username'])
+    return render_template('viewAssignments.html', dic=dic, username=current_user.get_id())
   
 
 	
