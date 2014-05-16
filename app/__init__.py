@@ -11,13 +11,8 @@ parentDir = os.path.abspath(os.path.join(dirname, os.path.pardir))
 filename = os.path.join(parentDir, 'gfl_syntax', 'scripts')
 sys.path.insert(0, filename)
 import view
-sys.path.insert(0, parentDir)
-from config import *
-DATA_DIR = os.path.join(DIRECTORY, 'data')
-USER_DIR = os.path.join(DIRECTORY, 'users')
-TEMP_DIR = os.path.join(DIRECTORY, 'temp')
-OUTPUT_DIR = os.path.join(DIRECTORY, 'output')
 from user import User
+from conf import *
 
 login_manager = LoginManager()
 
@@ -186,7 +181,7 @@ def apiAdmin():
         dic[username][dataset] = {}
       with codecs.open(filename, 'r', 'utf-8') as f:
         dic[username][dataset] = [json.loads(line) for line in f.readlines()]
-    return render_template('viewSubmissions.html', displayDict=dic, current_user.get_id())
+    return render_template('viewSubmissions.html', displayDict=dic, username=current_user.get_id())
   elif request.args.get('req') == 'assignments':
     dic = {}
     regex = r'(?:.*?/)+data/(.*?)\.json'
