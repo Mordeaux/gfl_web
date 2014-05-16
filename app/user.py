@@ -1,17 +1,28 @@
 import os
 import json
+
 from flask.ext.login import UserMixin
 
+from conf import *
+
 class User(UserMixin):
-  
+    file_format_string = os.path.join(USER_DIR, '{}.json') 
+ 
     @staticmethod
     def get(userid):
-        if os.path.exists
+        if not os.path.exists(file_format_string.format(userid)):
+            return None
         return User(userid)
+
+    @staticmethod
+    def get_user_list():
+        files = glob.glob(file_format_string.format('*')) 
+        regex = file_format_string.format(r'(.*)\\')
+        return [re.search(regex, path).group(1) for path in files]
     
     def __init__(self, userid):
         self.username = userid
-        self.filepath = os.path.join(USER_DIR, self.get_id()+'.json')
+        self.filepath = os.path.join(file_format_string.format(userid))
   
     def make_admin(self):
         self.admin = True
@@ -48,5 +59,16 @@ class User(UserMixin):
 
     def load(self):
         with codecs.open(self.filepath, 'r', 'utf-8') as f:
-            annoDic = json.loads(f.read())
+            self.annoDic = json.loads(f.read())
             return annoDic
+
+    def get_current_anno(self):
+        if not self.annoDic:
+            self.annoDic = self.load()
+        return self.annoDic['current'] 
+
+    def set_current_anno(self, dataset, batch):
+        if not self.annoDic:
+            self.annoDic = self.load()
+        self.annoDic['current'] = (dataset, batch)
+

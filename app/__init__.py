@@ -10,7 +10,7 @@ import json
 import time
 import glob
 
-from flask import Flask, render_template, request, redirect, send_file, session
+from flask import Flask, render_template, request, redirect, send_file 
 from flask.ext.login import LoginManager, login_required, login_user
 
 from functions import *
@@ -19,36 +19,35 @@ import view
 from user import User
 
 login_manager = LoginManager()
-
 app = Flask(__name__)
 
 login_manager.init_app(app)
+login_manager.login_view = "login"
+
 @login_manager.user_loader
 def load_user(userid):
     return User.get(userid)
-login_manager.login_view = "login"
-
 
 @app.route("/")
 @login_required
 def home():
-  return render_template('index.html', userDict=current_user.load(), 
-                         username=current_user.get_id())
+    return render_template('index.html', userDict=current_user.load(), 
+                           username=current_user.get_id())
 
 @app.route('/login')
 def login():
-  username = request.args.get('user')
-  if not os.path.isfile(os.path.join(USER_DIR, username+'.json')):
-    newUser(username=username)
-  login_user(username)
-  return redirect('/')
+    username = request.args.get('user')
+    if not os.path.isfile(os.path.join(USER_DIR, username+'.json')):
+        newUser(username=username)
+    login_user(username)
+    return redirect('/')
 
 @app.route('/annotate')
 @login_required
 def annotate():
-  if not session.get('current'): return home()
-  return render_template('annotate.html', newswire=NORMALIZATION_TASK, 
-                         c=session.get('current'), username=current_user.get_id())
+    return render_template('annotate.html',  
+                           c=current_user.get_current_anno(), 
+                           username=current_user.get_id())
 
 @app.route('/admin')
 @login_required
@@ -56,63 +55,64 @@ def admin():
     if current_user.get_id() not in ADMINS:
         return 'Not Authorized', 500
     updateDatasets()
-    userlist = [re.search(USER_DIR+os.sep+r'(.*)\.json', file).group(1) for file in glob.glob(os.path.join(USER_DIR, '*.json'))]
     with codecs.open(os.path.join(DIRECTORY, 'metaData.json'), 'r', 'utf-8') as f:
         assignments = json.loads(f.read())['assignments']
-    return render_template('admin.html', users=userlist, 
+    return render_template('admin.html', users=User.get_user_list(), 
                            assignments=assignments, username=current_user.get_id())
 
 @app.route('/api/setCurrent')
 @login_required
 def setCurrent():
-  dataset = request.args.get('dataset')
-  batch = request.args.get('batch')
-  session['current'] = (dataset, str(batch))
-  print session.get('current')
-  return 'OK',200
+    dataset = request.args.get('dataset')
+    batch = request.args.get('batch')
+    current_user.set_current_anno(dataset, str(batch))
+    return 'OK',200
 
 @app.route('/api/getBatch')
 @login_required
 def getBatch():
-  annoDic = current_user.load()
-  if request.args.get('dataset') == 'new':
-    return json.dumps({'0':{'id':int(time.time()), 'sent':'', 'anno':'', 'last':True, 'number':0, 'userAdd':True, 'analyzed':[], 'accessed':[], 'submitted':[], 'pos':None}, '1':'', '2':'', '3':''})
-  return json.dumps(annoDic[request.args.get('dataset')][request.args.get('batch')])
+    annoDic = current_user.load()
+    if request.args.get('dataset') == 'new':
+        return json.dumps({'0':{'id':int(time.time()), 'sent':'', 'anno':'', 
+                       'last':True, 'number':0, 'userAdd':True, 'analyzed':[], 
+                       'accessed':[], 'submitted':[], 'pos':None}, 
+                       '1':'', '2':'', '3':''})
+    return json.dumps(annoDic[request.args.get('dataset')][request.args.get('batch')])
 
 @app.route('/api/updateBatch', methods=['POST'])
 @login_required
 def updateBatch():
-  if session.get('current')[0] == 'new':
+    if current_user.get_current_anno()[0] == 'new':
+        return 'OK',200
+    annoDic = current_user.load()
+    newBatch = json.loads(request.form.get('batch'))
+    annoDic[current_user.get_current_anno()[0]][current_user.get_current_anno()[1]] = newBatch
+    current_user.save(annoDic)
     return 'OK',200
-  annoDic = current_user.load()
-  newBatch = json.loads(request.form.get('batch'))
-  annoDic[session.get('current')[0]][session.get('current')[1]] = newBatch
-  current_user.save(annoDic)
-  return 'OK',200
 
 @app.route('/api/submit', methods=['POST'])
 @login_required
 def submit():
-  if session.get('current')[0] in ['training', 'new']:
+  if current_user.get_current_anno()[0] in ['training', 'new']:
       return 'OK',200
-  with codecs.open(os.path.join(OUTPUT_DIR, session.get('current')[0]+'_'+current_user.get_id()+OUTPUT), 'a', 'utf-8') as f:
+  with codecs.open(os.path.join(OUTPUT_DIR, current_user.get_current_anno()[0]+'_'+current_user.get_id()+OUTPUT), 'a', 'utf-8') as f:
     f.write(request.form.get('anno'))
     f.write('\n')
   x = True
-  batch = current_user.load()[session.get('current')[0]][session.get('current')[1]]
+  batch = current_user.load()[current_user.get_current_anno()[0]][current_user.get_current_anno()[1]]
   for anno in batch:
     if anno not in ['assignedTo', 'locked']:
       if not batch[anno]['submitted']:
         x = False
   if x:
-    with codecs.open(os.path.join(DATA_DIR, session.get('current')[0]+'.json'), 'r', 'utf-8') as f:
+    with codecs.open(os.path.join(DATA_DIR, current_user.get_current_anno()[0]+'.json'), 'r', 'utf-8') as f:
       dataset = f.readlines()
-      batch = json.loads(dataset[int(session.get('current')[1])])
+      batch = json.loads(dataset[int(current_user.get_current_anno()[1])])
     for name in batch['assignedTo']:
       if name == current_user.get_id():
         batch['assignedTo'][batch['assignedTo'].index(name)] = name + ' (completed)'
-    dataset[int(session.get('current')[1])] = json.dumps(batch) + '\n'
-    with codecs.open(os.path.join(DATA_DIR, session.get('current')[0]+'.json'), 'w', 'utf-8') as f:
+    dataset[int(current_user.get_current_anno()[1])] = json.dumps(batch) + '\n'
+    with codecs.open(os.path.join(DATA_DIR, current_user.get_current_anno()[0]+'.json'), 'w', 'utf-8') as f:
       for line in dataset:
         f.write(line)
   return 'OK',200
@@ -120,16 +120,16 @@ def submit():
 @app.route('/api/analyzegfl.png', methods=['GET'])
 @login_required
 def analyze(): 
-	sent = request.args.get('sentence')
-	annotation = request.args.get('anno')
-	preproc = u'% TEXT\n{0}\n% ANNO\n{1}'.format(sent, annotation)
-	with codecs.open(os.path.join(TEMP_DIR, current_user.get_id()+'.txt'), 'w', 'utf-8') as f:
-		f.write(preproc)
-	try: 
-		view.main([os.path.join(TEMP_DIR, current_user.get_id()+'.txt')])
-		return send_file(os.path.join(TEMP_DIR, current_user.get_id()+'.0.png'), mimetype='image/png')
-	except Exception as ex:
-		return str(ex), 500 
+    sent = request.args.get('sentence')
+    annotation = request.args.get('anno')
+    preproc = u'% TEXT\n{0}\n% ANNO\n{1}'.format(sent, annotation)
+    with codecs.open(os.path.join(TEMP_DIR, current_user.get_id()+'.txt'), 'w', 'utf-8') as f:
+        f.write(preproc)
+    try: 
+        view.main([os.path.join(TEMP_DIR, current_user.get_id()+'.txt')])
+        return send_file(os.path.join(TEMP_DIR, current_user.get_id()+'.0.png'), mimetype='image/png')
+    except Exception as ex:
+        return str(ex), 500 
 		
 @app.route('/api/assign')
 @login_required
@@ -160,14 +160,14 @@ def assign():
 		
 @app.route('/api/newUser')
 def newUser(username=False):
-	if not username:
-		username = request.args.get('newUser')
-	userDict = {}
-	with codecs.open(os.path.join(DIRECTORY, 'training.json'), 'r', 'utf-8') as f:
-		userDict['training'] = json.loads(f.read())
-	with codecs.open(os.path.join(USER_DIR, username+'.json'), 'w', 'utf-8') as f:
-		f.write(json.dumps(userDict))
-	return 'OK', 200
+    if not username:
+        username = request.args.get('newUser')
+    userDict = {}
+    with codecs.open(os.path.join(DIRECTORY, 'training.json'), 'r', 'utf-8') as f:
+        userDict['training'] = json.loads(f.read())
+    with codecs.open(os.path.join(USER_DIR, username+'.json'), 'w', 'utf-8') as f:
+        f.write(json.dumps(userDict))
+    return 'OK', 200
 
 @app.route('/api/admin')
 @login_required
