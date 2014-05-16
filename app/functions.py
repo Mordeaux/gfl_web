@@ -121,19 +121,3 @@ def updateDatasets():
         if not os.path.isfile(jsonPath):
             addDataSet(file, sizeOfBatch=ANNOTATIONS_PER_BATCH, overlap=OVERLAP)
     updateMetaData()
-
-
-def getUserDict(username):
-	with codecs.open(os.path.join(USER_DIR, alias(username)+'.json'), 'r', 'utf-8') as f:
-		annoDic = json.loads(f.read())
-		return annoDic
-		
-def saveUserDict(username, annoDic):
-	with codecs.open(os.path.join(USER_DIR, alias(username)+'.json'), 'w', 'utf-8') as f:
-		f.write(json.dumps(annoDic))
-		
-
-
-def alias(username):
-	return username
-		

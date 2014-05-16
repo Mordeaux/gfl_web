@@ -34,21 +34,23 @@ from functions import *
 @app.route("/")
 @login_required
 def home():
-  return render_template('index.html', userDict=getUserDict(current_user.get_id()), username=current_user.get_id())
+  return render_template('index.html', userDict=current_user.load(), 
+                         username=current_user.get_id())
 
 @app.route('/login')
 def login():
   username = request.args.get('user')
   if not os.path.isfile(os.path.join(USER_DIR, username+'.json')):
     newUser(username=username)
-  login_user(unicode(username))
+  login_user(username)
   return redirect('/')
 
 @app.route('/annotate')
 @login_required
 def annotate():
   if not session.get('current'): return home()
-  return render_template('annotate.html', newswire=NORMALIZATION_TASK, c=session.get('current'), username=current_user.get_id())
+  return render_template('annotate.html', newswire=NORMALIZATION_TASK, 
+                         c=session.get('current'), username=current_user.get_id())
 
 @app.route('/admin')
 @login_required
@@ -59,7 +61,8 @@ def admin():
     userlist = [re.search(USER_DIR+os.sep+r'(.*)\.json', file).group(1) for file in glob.glob(os.path.join(USER_DIR, '*.json'))]
     with codecs.open(os.path.join(DIRECTORY, 'metaData.json'), 'r', 'utf-8') as f:
         assignments = json.loads(f.read())['assignments']
-    return render_template('admin.html', users=userlist, assignments=assignments, username=current_user.get_id())
+    return render_template('admin.html', users=userlist, 
+                           assignments=assignments, username=current_user.get_id())
 
 @app.route('/api/setCurrent')
 @login_required
@@ -73,7 +76,7 @@ def setCurrent():
 @app.route('/api/getBatch')
 @login_required
 def getBatch():
-  annoDic = getUserDict(current_user.get_id())
+  annoDic = current_user.load()
   if request.args.get('dataset') == 'new':
     return json.dumps({'0':{'id':int(time.time()), 'sent':'', 'anno':'', 'last':True, 'number':0, 'userAdd':True, 'analyzed':[], 'accessed':[], 'submitted':[], 'pos':None}, '1':'', '2':'', '3':''})
   return json.dumps(annoDic[request.args.get('dataset')][request.args.get('batch')])
@@ -83,10 +86,10 @@ def getBatch():
 def updateBatch():
   if session.get('current')[0] == 'new':
     return 'OK',200
-  annoDic = getUserDict(current_user.get_id())
+  annoDic = current_user.load()
   newBatch = json.loads(request.form.get('batch'))
   annoDic[session.get('current')[0]][session.get('current')[1]] = newBatch
-  saveUserDict(current_user.get_id(), annoDic)
+  current_user.save(annoDic)
   return 'OK',200
 
 @app.route('/api/submit', methods=['POST'])
@@ -98,7 +101,7 @@ def submit():
     f.write(request.form.get('anno'))
     f.write('\n')
   x = True
-  batch = getUserDict(current_user.get_id())[session.get('current')[0]][session.get('current')[1]]
+  batch = current_user.load()[session.get('current')[0]][session.get('current')[1]]
   for anno in batch:
     if anno not in ['assignedTo', 'locked']:
       if not batch[anno]['submitted']:
@@ -135,17 +138,17 @@ def analyze():
 def assign():
   dataset = request.args.get('dataset')
   batch = int(request.args.get('batch'))
-  username = alias(request.args.get('user'))
+  user = User.get(request.args.get('user'))
   with codecs.open(os.path.join(DATA_DIR, dataset+'.json'), 'r', 'utf-8') as f:
     lines = f.readlines()
   dic = json.loads(lines[batch])
-  dic['assignedTo'].append(username)
-  userDict = getUserDict(username)
+  dic['assignedTo'].append(user.get_id())
+  userDict = user.load()
   if dataset not in userDict:
     userDict[dataset] = {}
   assert str(batch-1) not in userDict[dataset] and str(batch+1) not in userDict[dataset]		
   userDict[dataset][str(batch)] = dic
-  saveUserDict(username, userDict)
+  user.save(userDict)
   lines[batch] = json.dumps(dic) + '\n'
   with codecs.open(os.path.join(DATA_DIR, dataset+'.json'), 'w', 'utf-8') as f:
     for line in lines:
@@ -183,7 +186,7 @@ def apiAdmin():
         dic[username][dataset] = {}
       with codecs.open(filename, 'r', 'utf-8') as f:
         dic[username][dataset] = [json.loads(line) for line in f.readlines()]
-    return render_template('viewSubmissions.html', displayDict=dic, username=session['username'])
+    return render_template('viewSubmissions.html', displayDict=dic, current_user.get_id())
   elif request.args.get('req') == 'assignments':
     dic = {}
     regex = r'(?:.*?/)+data/(.*?)\.json'
