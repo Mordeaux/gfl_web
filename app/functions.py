@@ -1,5 +1,5 @@
 import re, codecs, json, time, os, sys, glob
-from conf import DIRECTORY, ANNOTATIONS_PER_BATCH, OVERLAP, USER_DIR, PREPROC_DIR, DATA_DIR
+from conf import *
 
 def training():
 	sents = """Birds sing .

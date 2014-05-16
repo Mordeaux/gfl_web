@@ -3,16 +3,20 @@ Created Fall 2013
 
 @author: Michael Mordowanec (Mordeaux)
 """
+import sys
+import os
+import codecs
+import json
+import time
+import glob
+
 from flask import Flask, render_template, request, redirect, send_file, session
 from flask.ext.login import LoginManager, login_required, login_user
-import sys, os, codecs, json, time, glob
-dirname = os.path.dirname(__file__)
-parentDir = os.path.abspath(os.path.join(dirname, os.path.pardir))
-filename = os.path.join(parentDir, 'gfl_syntax', 'scripts')
+
+from functions import *
 sys.path.insert(0, filename)
 import view
 from user import User
-from conf import *
 
 login_manager = LoginManager()
 
@@ -24,7 +28,6 @@ def load_user(userid):
     return User.get(userid)
 login_manager.login_view = "login"
 
-from functions import *
 
 @app.route("/")
 @login_required

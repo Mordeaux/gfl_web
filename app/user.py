@@ -6,11 +6,12 @@ class User(UserMixin):
   
     @staticmethod
     def get(userid):
+        if os.path.exists
         return User(userid)
     
     def __init__(self, userid):
         self.username = userid
-        self.filepath = os.path.join(USER_DIR, self.get_id()+'.json') 
+        self.filepath = os.path.join(USER_DIR, self.get_id()+'.json')
   
     def make_admin(self):
         self.admin = True
