@@ -11,12 +11,18 @@ import time
 import glob
 
 from flask import Flask, render_template, request, redirect, send_file 
-from flask.ext.login import LoginManager, login_required, login_user
+from flask.ext.login import LoginManager, login_required, login_user, current_user
 
-from functions import *
+from conf import *
+
 sys.path.insert(0, filename)
 import view
+from functions import *
+from login_form import LoginForm
+from gfl_web import GFLWeb
 from user import User
+
+project = GFLWeb()
 
 login_manager = LoginManager()
 app = Flask(__name__)
@@ -34,13 +40,15 @@ def home():
     return render_template('index.html', userDict=current_user.load(), 
                            username=current_user.get_id())
 
-@app.route('/login')
+
+@app.route('/login', methods=['GET', 'POST'])
 def login():
-    username = request.args.get('user')
-    if not os.path.isfile(os.path.join(USER_DIR, username+'.json')):
-        newUser(username=username)
-    login_user(username)
-    return redirect('/')
+    form = LoginForm(request.form)
+    if request.method == 'POST' and form.validate():
+        login_user(User(request.form.get('username')))
+        return redirect('/')
+    return render_template('login.html', form=form)
+
 
 @app.route('/annotate')
 @login_required
@@ -48,6 +56,7 @@ def annotate():
     return render_template('annotate.html',  
                            c=current_user.get_current_anno(), 
                            username=current_user.get_id())
+
 
 @app.route('/admin')
 @login_required
@@ -172,27 +181,29 @@ def newUser(username=False):
 @app.route('/api/admin')
 @login_required
 def apiAdmin():
-  if request.args.get('req') == 'submissions':
-    dic = {}
-    regex = r'(?:.*?/)+(.*?)_(.*?)'+OUTPUT
-    for filename in glob.glob(os.path.join(OUTPUT_DIR, '*')):
-      username = re.search(regex, filename).group(2)
-      dataset = re.search(regex, filename).group(1)
-      if username not in dic:
-        dic[username] = {}
-      if dataset not in dic[username]:
-        dic[username][dataset] = {}
-      with codecs.open(filename, 'r', 'utf-8') as f:
-        dic[username][dataset] = [json.loads(line) for line in f.readlines()]
-    return render_template('viewSubmissions.html', displayDict=dic, username=current_user.get_id())
-  elif request.args.get('req') == 'assignments':
-    dic = {}
-    regex = r'(?:.*?/)+data/(.*?)\.json'
-    for filename in glob.glob(os.path.join(DATA_DIR, '*.json')):
-      dataset = re.search(regex, filename).group(1)
-      with codecs.open(filename, 'r', 'utf-8') as f:
-        dic[dataset] = [json.loads(line) for line in f.readlines()]
-    return render_template('viewAssignments.html', dic=dic, username=current_user.get_id())
+    if request.args.get('req') == 'submissions':
+        dic = {}
+        regex = r'(?:.*?/)+(.*?)_(.*?)'+OUTPUT
+        for filename in glob.glob(os.path.join(OUTPUT_DIR, '*')):
+            username = re.search(regex, filename).group(2)
+            dataset = re.search(regex, filename).group(1)
+            if username not in dic:
+                dic[username] = {}
+            if dataset not in dic[username]:
+                dic[username][dataset] = {}
+            with codecs.open(filename, 'r', 'utf-8') as f:
+                dic[username][dataset] = [json.loads(line) for line in f.readlines()]
+        return render_template('viewSubmissions.html', displayDict=dic, 
+                           username=current_user.get_id())
+    elif request.args.get('req') == 'assignments':
+        dic = {}
+        regex = r'(?:.*?/)+data/(.*?)\.json'
+        for filename in glob.glob(os.path.join(DATA_DIR, '*.json')):
+            dataset = re.search(regex, filename).group(1)
+            with codecs.open(filename, 'r', 'utf-8') as f:
+                dic[dataset] = [json.loads(line) for line in f.readlines()]
+        return render_template('viewAssignments.html', dic=dic, 
+                           username=current_user.get_id())
   
 
 	
@@ -201,7 +212,8 @@ def apiAdmin():
 app.secret_key = SECRET_KEY
 
 if __name__ == "__main__":
-    directories = [DIRECTORY, DATA_DIR, OUTPUT_DIR, USER_DIR, PREPROC_DIR, TEMP_DIR]
+    directories = [DIRECTORY, DATA_DIR, OUTPUT_DIR, 
+                   USER_DIR, PREPROC_DIR, TEMP_DIR]
     for directory in directories:
         print directory
         if not os.path.exists(directory):

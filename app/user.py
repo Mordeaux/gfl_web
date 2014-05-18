@@ -1,4 +1,5 @@
 import os
+import codecs
 import json
 
 from flask.ext.login import UserMixin
@@ -10,19 +11,20 @@ class User(UserMixin):
  
     @staticmethod
     def get(userid):
-        if not os.path.exists(file_format_string.format(userid)):
+        if not os.path.exists(User.file_format_string.format(userid)):
             return None
         return User(userid)
 
     @staticmethod
     def get_user_list():
-        files = glob.glob(file_format_string.format('*')) 
-        regex = file_format_string.format(r'(.*)\\')
+        files = glob.glob(User.file_format_string.format('*')) 
+        regex = User.file_format_string.format(r'(.*)\\')
         return [re.search(regex, path).group(1) for path in files]
     
     def __init__(self, userid):
         self.username = userid
-        self.filepath = os.path.join(file_format_string.format(userid))
+        self.filepath = os.path.join(User.file_format_string.format(userid))
+        self.annoDic = None
   
     def make_admin(self):
         self.admin = True
@@ -60,7 +62,7 @@ class User(UserMixin):
     def load(self):
         with codecs.open(self.filepath, 'r', 'utf-8') as f:
             self.annoDic = json.loads(f.read())
-            return annoDic
+            return self.annoDic
 
     def get_current_anno(self):
         if not self.annoDic:
@@ -71,4 +73,5 @@ class User(UserMixin):
         if not self.annoDic:
             self.annoDic = self.load()
         self.annoDic['current'] = (dataset, batch)
+        self.save(self.annoDic)
 
