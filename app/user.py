@@ -20,6 +20,14 @@ class User(UserMixin):
         files = glob.glob(User.file_format_string.format('*')) 
         regex = User.file_format_string.format(r'(.*)\\')
         return [re.search(regex, path).group(1) for path in files]
+   
+    @staticmethod
+    def check_password(userid, password):
+        with codecs.open(User.file_format_string.format(userid), 'r', 'utf-8') as f:
+            expected = json.loads(f.read())['password']
+        if expected == password:
+            return True
+        return False
     
     def __init__(self, userid):
         self.username = userid
@@ -28,6 +36,9 @@ class User(UserMixin):
   
     def make_admin(self):
         self.admin = True
+
+    def is_admin(self):
+        return True if self.username in ADMINS else False
   
     def is_authenticated(self):
         """Returns True if the user is authenticated, i.e. they have provided 
@@ -62,6 +73,7 @@ class User(UserMixin):
     def load(self):
         with codecs.open(self.filepath, 'r', 'utf-8') as f:
             self.annoDic = json.loads(f.read())
+            self.annoDic['password'] = 'mordo' ########################################### fix this
             return self.annoDic
 
     def get_current_anno(self):

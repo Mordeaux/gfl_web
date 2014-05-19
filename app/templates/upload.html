@@ -1,0 +1,20 @@
+{% extends "template.html" %}
+
+
+{% block body %}
+{% from "_formhelpers.html" import render_field %}
+<form method="post" action="/upload">
+  <dl>
+    {{ render_field(form.dataset) }}
+    {{ render_field(form.title) }}
+  </dl>
+  <p><input type="submit" value="Upload">
+</form>
+
+
+
+
+{% endblock %}
+
+
+
