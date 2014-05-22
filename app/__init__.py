@@ -10,7 +10,7 @@ import json
 import time
 import glob
 
-from flask import Flask, render_template, request, redirect, send_file 
+from flask import Flask, render_template, request, redirect, send_file, url_for
 from flask.ext.login import LoginManager, login_required, login_user, current_user
 
 from conf import *
@@ -45,7 +45,7 @@ def home():
 def login():
     form = LoginForm(request.form)
     validates = request.method == 'POST' and form.validate()
-    if validates and User.check_password(request.form.get('username'), password):
+    if validates and User.check_password(request.form.get('username'), request.form.get('password')):
         login_user(User(request.form.get('username')))
         return redirect(request.args.get("next") or url_for("home"))
     return render_template('login.html', form=form)
