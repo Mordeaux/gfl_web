@@ -91,6 +91,7 @@ function assignBatch(dataset, batch) {
 
 function postAnno() {
   window.batchDict[window.currentInd].anno = editor.getValue();
+  window.batchDict[window.currentInd].sent = $("#sent").val(); 
   window.batchDict[window.currentInd].newswire = $("#newswire").val();
   window.batchDict[window.currentInd].comment = $("#comment").val();
   window.batchDict[window.currentInd].submitted.push(Math.round(+new Date()/1000));
