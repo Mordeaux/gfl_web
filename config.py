@@ -24,7 +24,7 @@ DEBUG = True
 # admin interface to assign batches. 
 # This should be a list of strings, eg:
 # ['admin1', 'admin2']
-ADMINS = []
+ADMINS = ['mordo']
 #----------------------------------------
 # The preproc directory is where the app
 # will look for your datasets. Be sure

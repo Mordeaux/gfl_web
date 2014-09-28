@@ -90,3 +90,5 @@ class User(UserMixin):
         self.annoDic['current'] = (dataset, batch)
         self.save(self.annoDic)
 
+    def get_datasets(self):
+        return [dataset for dataset in self.load()['datasets']]

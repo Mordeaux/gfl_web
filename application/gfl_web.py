@@ -4,13 +4,13 @@ import json
 import os
 import glob
 
-from config import *
+from conf import *
 
 class GFLWeb(object):
 
 
 
-    def addDataSet(preproc, sizeOfBatch=10, overlap=4):
+    def addDataSet(self, preproc, sizeOfBatch=10, overlap=4):
         """Takes a .preproc path as string. sizeOfBatch is the number of 
         annotations per batch to be assigned. overlap must be even. Sometimes 
         fails on EOL issues."""
@@ -54,7 +54,7 @@ class GFLWeb(object):
             f.write(json.dumps(chunk))
 
 
-    def updateMetaData():
+    def updateMetaData(self):
         """Assignments, aliases."""
         meta = {'assignments':{}, 'aliases':{}}
         if os.path.isfile(os.path.join(DIRECTORY, 'metaData.json')):
@@ -71,9 +71,9 @@ class GFLWeb(object):
             f.write(json.dumps(meta))
 
 
-    def updateDatasets():
+    def updateDatasets(self):
         for file in glob.glob(os.path.join(PREPROC_DIR, '*.preproc')):
             jsonPath = os.path.join(DATA_DIR, re.search(r'.*preproc.(.*)\.preproc', file).group(1)+'.json')
             if not os.path.isfile(jsonPath):
                 addDataSet(file, sizeOfBatch=ANNOTATIONS_PER_BATCH, overlap=OVERLAP)
-        updateMetaData()
+        self.updateMetaData()

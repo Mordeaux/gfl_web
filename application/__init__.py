@@ -15,8 +15,10 @@ from flask.ext.login import LoginManager, login_required, login_user, current_us
 
 from conf import *
 
+#The following two lines import the necessary module from gfl_syntax
 sys.path.insert(0, filename)
 import view
+
 from functions import *
 from forms import LoginForm, UploadForm
 from gfl_web import GFLWeb
@@ -34,6 +36,7 @@ login_manager.login_view = "login"
 def load_user(userid):
     return User.get(userid)
 
+
 @app.route("/")
 @login_required
 def home():
@@ -49,6 +52,7 @@ def login():
         login_user(User(request.form.get('username')))
         return redirect(request.args.get("next") or url_for("home"))
     return render_template('login.html', form=form)
+
 
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
@@ -211,6 +215,7 @@ def newUser(username=False):
         f.write(json.dumps(userDict))
     return 'OK', 200
 
+
 @app.route('/api/admin')
 @login_required
 def apiAdmin():
@@ -239,7 +244,6 @@ def apiAdmin():
                 dic[dataset] = [json.loads(line) for line in f.readlines()]
         return render_template('viewAssignments.html', dic=dic, 
                            username=current_user.get_id())
-
   
 
 app.secret_key = SECRET_KEY
