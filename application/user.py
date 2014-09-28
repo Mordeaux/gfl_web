@@ -1,4 +1,6 @@
 import os
+import glob
+import re
 import codecs
 import json
 
@@ -18,7 +20,7 @@ class User(UserMixin):
     @staticmethod
     def get_user_list():
         files = glob.glob(User.file_format_string.format('*')) 
-        regex = User.file_format_string.format(r'(.*)\\')
+        regex = User.file_format_string.format(r'(.*)')
         return [re.search(regex, path).group(1) for path in files]
    
     @staticmethod

@@ -60,7 +60,6 @@ def signup():
     return render_template('signup.html', form=form)
 
 
-
 @app.route('/annotate')
 @login_required
 def annotate():
@@ -203,6 +202,8 @@ def assign():
 def newUser(username=False):
     if not username:
         username = request.args.get('newUser')
+    if username in User.get_user_list():
+        pass #need to figure out how to raise an error that can also be sent through to the web interface
     userDict = {}
     with codecs.open(os.path.join(DIRECTORY, 'training.json'), 'r', 'utf-8') as f:
         userDict['training'] = json.loads(f.read())
