@@ -1,3 +1,8 @@
+import codecs
+import json
+import os
+
+from . import DIRECTORY
 
 def training():
 	sents = """Birds sing .

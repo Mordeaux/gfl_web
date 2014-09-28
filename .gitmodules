@@ -1,6 +1,6 @@
 [submodule "gfl_syntax"]
 	path = gfl_syntax
 	url = https://github.com/brendano/gfl_syntax.git
-[submodule "app/static/ace-builds"]
-	path = app/static/ace-builds
+[submodule "application/static/ace-builds"]
+	path = application/static/ace-builds
 	url = https://github.com/ajaxorg/ace-builds.git

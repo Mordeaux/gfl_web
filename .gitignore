@@ -54,3 +54,4 @@ docs/_build/
 
 # Vim swap file crap
 *.sw[pon]
+data/

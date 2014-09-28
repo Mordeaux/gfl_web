@@ -74,7 +74,7 @@ class User(UserMixin):
     def load(self):
         with codecs.open(self.filepath, 'r', 'utf-8') as f:
             self.annoDic = json.loads(f.read())
-            self.annoDic['password'] = 'mordo' ########################################### fix this
+            #self.annoDic['password'] = 'mordo' ########################################### fix this
             return self.annoDic
 
     def get_current_anno(self):

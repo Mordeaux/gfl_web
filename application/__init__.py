@@ -50,6 +50,16 @@ def login():
         return redirect(request.args.get("next") or url_for("home"))
     return render_template('login.html', form=form)
 
+@app.route('/signup', methods=['GET', 'POST'])
+def signup():
+    form = LoginForm(request.form)
+    if request.method == 'POST' and form.validate():
+        newUser(username=request.form.get('username'))
+        login_user(User(request.form.get('username')))
+        return redirect(url_for('home'))
+    return render_template('signup.html', form=form)
+
+
 
 @app.route('/annotate')
 @login_required
@@ -200,7 +210,6 @@ def newUser(username=False):
         f.write(json.dumps(userDict))
     return 'OK', 200
 
-
 @app.route('/api/admin')
 @login_required
 def apiAdmin():
@@ -229,6 +238,7 @@ def apiAdmin():
                 dic[dataset] = [json.loads(line) for line in f.readlines()]
         return render_template('viewAssignments.html', dic=dic, 
                            username=current_user.get_id())
+
   
 
 app.secret_key = SECRET_KEY

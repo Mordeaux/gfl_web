@@ -4,7 +4,7 @@ import sys, os, glob
 from config import *
 path = os.path.join(os.path.dirname(__file__), 'app')
 sys.path.insert(0, path)
-from FlaskGFL import app, DATA_DIR, OUTPUT_DIR, USER_DIR, TEMP_DIR, training, newUser
+from application import app, DATA_DIR, OUTPUT_DIR, USER_DIR, TEMP_DIR, training, newUser
 
 
 if __name__ == '__main__':
